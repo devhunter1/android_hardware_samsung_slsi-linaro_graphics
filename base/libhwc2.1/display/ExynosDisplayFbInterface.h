@@ -92,8 +92,8 @@ class ExynosDisplayFbInterface : public ExynosDisplayInterface {
         int32_t *outModes);
     virtual int32_t setColorMode(int32_t mode, int32_t __unused dqe_fd);
     virtual int32_t getDPUConfig(hwc2_config_t *config);
-    virtual int32_t setActiveConfig(hwc2_config_t config, displayConfigs_t &displayConfig);
-    virtual int32_t setActiveConfigWithConstraints(hwc2_config_t desiredConfig,
+    virtual int32_t setActiveConfig(ExynosDisplay &exynosDisplay, hwc2_config_t config, displayConfigs_t &displayConfig);
+    virtual int32_t setActiveConfigWithConstraints(ExynosDisplay &exynosDisplay, hwc2_config_t desiredConfig,
                                                    displayConfigs_t &displayConfig, bool test = false);
     virtual int32_t getDisplayVsyncPeriod(hwc2_vsync_period_t *outVsyncPeriod);
     virtual int32_t getDisplayVsyncTimestamp(uint64_t *outVsyncTimestamp);

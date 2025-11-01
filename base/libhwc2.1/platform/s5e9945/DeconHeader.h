@@ -19,9 +19,11 @@
 #ifndef ___SAMSUNG_DECON_H__
 #define ___SAMSUNG_DECON_H__
 #include "DeconCommonHeader.h"
-#define S3C_FB_MAX_WIN (6)
-#define MAX_DECON_WIN (6)
+#define S3C_FB_MAX_WIN (16)
+#define MAX_DECON_WIN (16)
 #define DECON_WIN_UPDATE_IDX MAX_DECON_WIN
+#define DECON_READBACK_IDX (MAX_DECON_WIN+1)
+#define DECON_WRITEBACK_IDX (MAX_DECON_WIN+1)
 #define MAX_PLANE_CNT (3)
 #define SUCCESS_EXYNOS_SMC 0
 typedef unsigned int u32;
@@ -30,8 +32,9 @@ typedef uint64_t dma_addr_t;
 #else
 typedef uint32_t dma_addr_t;
 #endif
-#define CHIP_VER (9810)
+#define CHIP_VER (991)
 #define MAX_RES_NUMBER 5
+
 struct lcd_res_info {
   unsigned int width;
   unsigned int height;
@@ -59,11 +62,25 @@ struct decon_rect {
 enum decon_idma_type {
   IDMA_G0 = 0,
   IDMA_G1,
+  IDMA_G2,
+  IDMA_G3,
+  IDMA_GF0,
+  IDMA_GF1,
+  IDMA_GF2,
+  IDMA_GF3,
   IDMA_VG0,
   IDMA_VG1,
-  IDMA_VGF0,
-  IDMA_VGRF0,
+  IDMA_VGS0,
+  IDMA_VGS1,
+  IDMA_VGFS0,
+  IDMA_VGFS1,
+  IDMA_VGRFS0,
+  IDMA_VGRFS1,
   ODMA_WB,
+  /* virtual */
+  IDMA_VGS8K,
+  IDMA_VGFS8K,
+  IDMA_VGRFS8K,
   MAX_DECON_DMA_TYPE,
 };
 struct decon_user_window {
@@ -78,6 +95,24 @@ struct dpp_params {
   enum dpp_hdr_standard hdr_std;
   u32 min_luminance;
   u32 max_luminance;
+};
+enum dpp_split_en {
+    DPP_SPLIT_OFF = 0,
+    DPP_SPLIT_LEFT = 1,
+    DPP_SPLIT_RIGHT = 2,
+};
+enum dpp_split_direction {
+    DPP_SPLIT_VERTICAL = 0,
+    DPP_SPLIT_HORIZONTAL = 1,
+};
+struct aux_frame {
+    /* DMA infomation for 8k split */
+    enum dpp_split_en spl_en;
+    /* DMA/DPP infomation for 8k split */
+    u32 padd_w;
+    u32 padd_h;
+    /* DPP infomation for 8k split */
+    enum dpp_split_direction spl_drtn;
 };
 struct decon_frame {
   int x;
@@ -94,15 +129,16 @@ struct decon_win_config {
     DECON_WIN_STATE_BUFFER,
     DECON_WIN_STATE_UPDATE,
     DECON_WIN_STATE_CURSOR,
+    DECON_WIN_STATE_BUFFER_LIBREQ,
     DECON_WIN_STATE_MRESOL = 0x10000,
   } state;
   union {
     __u32 color;
     struct {
       int fd_idma[3];
+      int fd_lut;
       int acq_fence;
       int rel_fence;
-      int plane_alpha;
       enum decon_blending blending;
       enum decon_idma_type idma_type;
       enum decon_pixel_format format;
@@ -111,17 +147,24 @@ struct decon_win_config {
       struct decon_win_rect transparent_area;
       struct decon_win_rect opaque_area;
       struct decon_frame src;
+      /* auxiliary source framebuffer coordinates */
+      struct aux_frame        aux_src;
     };
   };
   struct decon_frame dst;
   bool protection;
   bool compression;
+  int plane_alpha;
+  /* vOTF */
+  bool votf_en;
+  u32 hwfc_buf_idx;
 };
 struct decon_win_config_data {
   int present_fence;
   int fd_odma;
+  /* vrefresh rate */
   u32 fps;
-  struct decon_win_config config[MAX_DECON_WIN + 1];
+  struct decon_win_config config[MAX_DECON_WIN + 2];
 };
 struct decon_disp_info {
   enum hwc_ver ver;

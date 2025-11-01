@@ -117,7 +117,7 @@ class ExynosDisplayDrmInterface : public ExynosDisplayInterface,
     virtual int32_t setColorModeWithRenderIntent(int32_t __unused mode, int32_t __unused intent,
                                                  int32_t __unused dqe_fd);
     virtual int32_t getDPUConfig(hwc2_config_t *config) override;
-    virtual int32_t setActiveConfig(hwc2_config_t config,
+    virtual int32_t setActiveConfig(ExynosDisplay &exynosDisplay, hwc2_config_t config,
                                     displayConfigs_t __unused &displayConfig);
     virtual int32_t setCursorPositionAsync(uint32_t x_pos, uint32_t y_pos);
     virtual int32_t updateHdrCapabilities(std::vector<int32_t> &outTypes,
@@ -139,7 +139,7 @@ class ExynosDisplayDrmInterface : public ExynosDisplayInterface,
     virtual int32_t getConfigChangeDuration();
     virtual int32_t getVsyncAppliedTime(hwc2_config_t configId, displayConfigs &config,
                                         int64_t *actualChangeTime);
-    virtual int32_t setActiveConfigWithConstraints(
+    virtual int32_t setActiveConfigWithConstraints(ExynosDisplay __unused &exynosDisplay,
         hwc2_config_t config, displayConfigs_t &displayConfig, bool test = false);
     virtual void getDisplayHWInfo(uint32_t __unused &xres, uint32_t __unused &yres, int &psrMode,
                                   std::vector<ResolutionInfo> &resolutionInfo);

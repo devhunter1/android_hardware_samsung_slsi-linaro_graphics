@@ -52,7 +52,7 @@ class ExynosDisplayInterface {
         uint32_t *outNumModes,
         int32_t *outModes);
     virtual int32_t setColorMode(int32_t __unused mode, int32_t __unused dqe_fd) { return HWC2_ERROR_NONE; };
-    virtual int32_t setActiveConfig(hwc2_config_t __unused config,
+    virtual int32_t setActiveConfig(ExynosDisplay __unused &exynosDisplay, hwc2_config_t __unused config,
                                     displayConfigs_t __unused &displayConfig) { return HWC2_ERROR_NONE; };
     virtual int32_t getDisplayVsyncPeriod(hwc2_vsync_period_t *__unused outVsyncPeriod) { return HWC2_ERROR_NONE; };
     virtual int32_t getDisplayVsyncTimestamp(uint64_t *__unused outVsyncTimestamp) { return HWC2_ERROR_NONE; };
@@ -87,7 +87,7 @@ class ExynosDisplayInterface {
     virtual int32_t getVsyncAppliedTime(hwc2_config_t __unused configId,
                                         displayConfigs __unused &config, int64_t *__unused actualChangeTime) { return NO_ERROR; }
     virtual int32_t getConfigChangeDuration() { return 2; };
-    virtual int32_t setActiveConfigWithConstraints(hwc2_config_t __unused config,
+    virtual int32_t setActiveConfigWithConstraints(ExynosDisplay __unused &exynosDisplay, hwc2_config_t __unused config,
                                                    displayConfigs_t __unused &displayConfig, bool __unused test = false) { return NO_ERROR; };
     virtual void getDisplayHWInfo(uint32_t __unused &xres, uint32_t __unused &yres,
                                   int __unused &psrMode, std::vector<ResolutionInfo> __unused &resolutionInfo){};

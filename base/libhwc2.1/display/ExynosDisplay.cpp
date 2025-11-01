@@ -3270,7 +3270,7 @@ int32_t ExynosDisplay::checkValidationConfigConstraints(hwc2_config_t config,
 
     if (vsyncPeriodChangeConstraints->seamlessRequired) {
         displayConfigs_t displayConfig = mDisplayConfigs[config];
-        if ((mDisplayInterface->setActiveConfigWithConstraints(config, displayConfig, true)) != NO_ERROR) {
+        if ((mDisplayInterface->setActiveConfigWithConstraints(*this, config, displayConfig, true)) != NO_ERROR) {
             DISPLAY_LOGE("%s:: Seamless is not possible", __func__);
             return HWC2_ERROR_SEAMLESS_NOT_POSSIBLE;
         }
@@ -3405,7 +3405,7 @@ int32_t ExynosDisplay::setActiveConfigInternal(hwc2_config_t config) {
     mConfigChangeTimoutCnt = 0;
 
     displayConfigs_t displayConfig = mDisplayConfigs[config];
-    if (mDisplayInterface->setActiveConfig(config, displayConfig) < 0) {
+    if (mDisplayInterface->setActiveConfig(*this, config, displayConfig) < 0) {
         DISPLAY_LOGE("%s bad config request", __func__);
         return HWC2_ERROR_BAD_CONFIG;
     }
@@ -3581,7 +3581,7 @@ int32_t ExynosDisplay::doDisplayConfigPostProcess() {
 
     if (needSetActiveConfig) {
         displayConfigs_t displayConfig = mDisplayConfigs[mDesiredConfig];
-        if ((ret = mDisplayInterface->setActiveConfigWithConstraints(mDesiredConfig, displayConfig)) != NO_ERROR)
+        if ((ret = mDisplayInterface->setActiveConfigWithConstraints(*this, mDesiredConfig, displayConfig)) != NO_ERROR)
             return ret;
 
         int32_t desiredPeriod = 0;

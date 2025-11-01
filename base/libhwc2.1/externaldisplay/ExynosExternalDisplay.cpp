@@ -134,7 +134,7 @@ int ExynosExternalDisplay::getDisplayConfigs(uint32_t *outNumConfigs, hwc2_confi
         mYres = displayConfig.height;
         mVsyncPeriod = displayConfig.vsyncPeriod;
         if (mDisplayInterface->mType == INTERFACE_TYPE_DRM) {
-            int32_t ret2 = mDisplayInterface->setActiveConfig(mActiveConfig, displayConfig);
+            int32_t ret2 = mDisplayInterface->setActiveConfig(*this, mActiveConfig, displayConfig);
             if (ret2) {
                 DISPLAY_LOGE("%s:: failed to setActiveConfigs, ret(%d)", __func__, ret2);
                 return ret2;

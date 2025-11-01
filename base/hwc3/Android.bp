@@ -91,6 +91,9 @@ cc_binary {
     ] + select(soong_config_variable("exynos_hwc", "uses_hwc_services"), {
         "true": [ "libbinder_headers" ],
         default: [],
+    }) + select(soong_config_variable("exynos_hwc", "uses_display_color_interface"), {
+        "true": ["libdisplaycolor_interface"],
+        default: [],
     }),
 
     include_dirs: [
