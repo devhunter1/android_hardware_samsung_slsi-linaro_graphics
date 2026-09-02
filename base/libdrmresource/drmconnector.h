@@ -79,6 +79,7 @@ class DrmConnector {
   DrmProperty &hdr_output_meta();
   DrmProperty &adjusted_fps();
   const DrmProperty &hdr_sink_connected() const;
+  const DrmProperty &fingerprint_mask() const;
 
   const std::vector<DrmProperty *> &properties() const {
       return properties_;
@@ -133,6 +134,7 @@ class DrmConnector {
   DrmProperty lp_mode_;
   DrmProperty hdr_output_meta_;
   DrmProperty hdr_sink_connected_;
+  DrmProperty fingerprint_mask_;
   std::vector<DrmProperty *> properties_;
 
   std::vector<DrmEncoder *> possible_encoders_;

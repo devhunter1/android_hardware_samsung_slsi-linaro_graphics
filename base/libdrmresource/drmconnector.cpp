@@ -144,7 +144,12 @@ int DrmConnector::Init() {
   if (ret) {
     ALOGE("Could not get hdr_sink_connected property\n");
   }
-
+  ret = drm_->GetConnectorProperty(*this, "fingerprint_mask", &fingerprint_mask_);
+  if (ret) {
+    ALOGD("Could not get fingerprint_mask property\n");
+  } else {
+    ALOGD("get fingerprint_mask property\n");
+  }
   properties_.push_back(&dpms_property_);
   properties_.push_back(&crtc_id_property_);
   properties_.push_back(&edid_property_);
@@ -164,6 +169,7 @@ int DrmConnector::Init() {
   properties_.push_back(&hdr_output_meta_);
   properties_.push_back(&lp_mode_);
   properties_.push_back(&hdr_sink_connected_);
+  properties_.push_back(&fingerprint_mask_);
 
   return 0;
 }
@@ -359,6 +365,10 @@ uint32_t DrmConnector::mm_height() const {
 
 const DrmProperty &DrmConnector::hdr_sink_connected() const {
   return hdr_sink_connected_;
+}
+
+const DrmProperty &DrmConnector::fingerprint_mask() const {
+  return fingerprint_mask_;
 }
 
 int DrmConnector::UpdateHdrInfo() {

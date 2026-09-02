@@ -746,6 +746,10 @@ class ExynosMPP {
 
     virtual uint32_t getHWBlockId() { return mHWBlockId; }
     virtual uint32_t getAXIPortId() { return mAXIPortId; }
+    virtual void initTDMInfo(uint32_t hwBlockIndex, uint32_t axiPortIndex) {
+        mHWBlockId = hwBlockIndex;
+        mAXIPortId = axiPortIndex;
+    }
     void printMppsAttr();
 
     void registerBufDestoryedCallback(std::function<void(uint64_t)> const &cb) {

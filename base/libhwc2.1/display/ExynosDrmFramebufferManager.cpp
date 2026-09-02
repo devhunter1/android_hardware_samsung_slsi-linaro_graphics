@@ -274,7 +274,8 @@ int32_t FramebufferManager::getBuffer(const uint32_t displayType,
         modifiers[0] |= DRM_FORMAT_MOD_PROTECTION;
 
     if ((config.state == config.WIN_STATE_BUFFER) ||
-        (config.state == config.WIN_STATE_CURSOR)) {
+        (config.state == config.WIN_STATE_CURSOR) ||
+        (config.state == config.WIN_STATE_FINGERPRINT)) {
         bufWidth = config.src.f_w;
         bufHeight = config.src.f_h;
 

@@ -2615,9 +2615,11 @@ void ExynosResourceManager::makeDPURestrictions(
         if (checkOverlap) {
             addSizeRestrictions(hwType, rSrcSize, rDstSize, RESTRICTION_YUV);
         } else {
-            mpp->addSizeRestrictions(rSrcSize, rDstSize, RESTRICTION_YUV);
-            /* update otfMPP featurs */
-            setDPUFeature(mpp, dpuInfo->dpp_ch[i].attr);
+            if (mpp) {
+                mpp->addSizeRestrictions(rSrcSize, rDstSize, RESTRICTION_YUV);
+                /* update otfMPP featurs */
+                setDPUFeature(mpp, dpuInfo->dpp_ch[i].attr);
+            }
         }
     }
 }

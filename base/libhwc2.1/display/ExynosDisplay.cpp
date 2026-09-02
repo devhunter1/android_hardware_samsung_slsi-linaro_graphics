@@ -515,7 +515,7 @@ void ExynosDisplay::checkIgnoreLayers() {
 
     for (uint32_t index = 0; index < mLayers.size();) {
         ExynosLayer *layer = mLayers[index];
-        if (layer->mPlaneAlpha == 0.0) {
+        if (layer->mPlaneAlpha == 0.0 && layer->mCompositionType != HWC2_COMPOSITION_CLIENT) {
             layer->resetValidateData();
             layer->mValidateCompositionType = HWC2_COMPOSITION_DEVICE;
             /*

@@ -60,22 +60,22 @@ struct decon_rect {
   u32 bottom;
 };
 enum decon_idma_type {
-  IDMA_G0 = 0,
-  IDMA_G1,
-  IDMA_G2,
-  IDMA_G3,
-  IDMA_GF0,
+  IDMA_GF0 = 0,
   IDMA_GF1,
   IDMA_GF2,
   IDMA_GF3,
-  IDMA_VG0,
-  IDMA_VG1,
-  IDMA_VGS0,
-  IDMA_VGS1,
+  IDMA_GF4,
+  IDMA_GF5,
+  IDMA_GF6,
+  IDMA_GF7,
   IDMA_VGFS0,
   IDMA_VGFS1,
+  IDMA_VGFS2,
+  IDMA_VGFS3,
   IDMA_VGRFS0,
   IDMA_VGRFS1,
+  IDMA_VGRFS2,
+  IDMA_VGRFS3,
   ODMA_WB,
   MAX_DECON_DMA_TYPE,
 };
@@ -118,6 +118,7 @@ struct decon_win_config {
     DECON_WIN_STATE_CURSOR,
     DECON_WIN_STATE_BUFFER_LIBREQ,
     DECON_WIN_STATE_MRESOL = 0x10000,
+    DECON_WIN_STATE_FINGERPRINT = 0x30000,
   } state;
   union {
     __u32 color;

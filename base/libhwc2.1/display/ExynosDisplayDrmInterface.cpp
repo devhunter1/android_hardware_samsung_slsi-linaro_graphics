@@ -376,6 +376,21 @@ int32_t ExynosDisplayDrmInterface::setPowerMode(int32_t mode) {
     int ret = 0;
     uint64_t dpms_value = 0;
     if (mode == HWC_POWER_MODE_OFF) {
+        if (mDisplayIdentifier.type == HWC_DISPLAY_PRIMARY && mFodCommitted) {
+            mFodPending = false;
+            DrmModeAtomicReq drmReq(this);
+            const DrmProperty &prop = mDrmConnector->fingerprint_mask();
+            ret = drmReq.atomicAddProperty(mDrmConnector->id(), prop, mFodPending, false);
+            if (ret < 0) {
+                HWC_LOGE(mDisplayIdentifier, "Failed to set fingerprint_mask property in setPowerMode()");
+            }
+            mFodCommitted = mFodPending;
+            ret = drmReq.commit(0, false);
+            if (ret < 0) {
+                HWC_LOGE(mDisplayIdentifier, "Failed to commit pset in setPowerMode()");
+            }
+            ALOGI("%s: fingerprint_mask property is cleared in setPowerMode()", __func__);
+        }
         dpms_value = DRM_MODE_DPMS_OFF;
     } else {
         if (mDisplayIdentifier.type == HWC_DISPLAY_VIRTUAL) {
@@ -1011,6 +1026,18 @@ int32_t ExynosDisplayDrmInterface::setupCommitFromDisplayConfig(
         return NO_ERROR;
     };
 
+    if (mFodPending != mFodCommitted) {
+        const DrmProperty &prop = mDrmConnector->fingerprint_mask();
+        ret = drmReq.atomicAddProperty(mDrmConnector->id(), prop, mFodPending, false);
+
+        if (ret < 0) {
+            HWC_LOGE(mDisplayIdentifier, "%s : Failed to set fingerprint_mask property %d", __func__, ret);
+            return ret;
+        }
+        ALOGI("%s : fingerprint_mask property is %s", __func__, mFodPending ? "set" : "cleared");
+        mFodCommitted = mFodPending;
+    }
+
     if ((ret = setEnumProperty(config.blending, mBlendEnums,
                                plane->blend_property()) < 0))
         return ret;
@@ -1296,11 +1323,24 @@ int32_t ExynosDisplayDrmInterface::deliverWinConfigData(exynos_dpu_data &dpuData
         return ret;
     }
 
+    bool isFodLayer = false;
+    for (exynos_win_config_data &config : dpuData.configs) {
+        if (config.state == config.WIN_STATE_FINGERPRINT) {
+            isFodLayer = true;
+            break;
+        }
+    }
+
+    if (mFodCommitted != isFodLayer) {
+        mFodPending = isFodLayer;
+    }
+
     size_t virtualPlaneIndex = 0;
     for (exynos_win_config_data &config : dpuData.configs) {
         if ((config.state != config.WIN_STATE_BUFFER) &&
             (config.state != config.WIN_STATE_COLOR) &&
-            (config.state != config.WIN_STATE_CURSOR))
+            (config.state != config.WIN_STATE_CURSOR) &&
+            (config.state != config.WIN_STATE_FINGERPRINT))
             continue;
 
         virtual8KOTFInfo virtualOTFInfo;
@@ -1384,7 +1424,8 @@ int32_t ExynosDisplayDrmInterface::deliverWinConfigData(exynos_dpu_data &dpuData
      */
     for (auto &display_config : dpuData.configs) {
         if ((display_config.state != display_config.WIN_STATE_BUFFER) &&
-            (display_config.state != display_config.WIN_STATE_CURSOR))
+            (display_config.state != display_config.WIN_STATE_CURSOR) &&
+            (display_config.state != display_config.WIN_STATE_FINGERPRINT))
             continue;
 
         if (dpuData.enable_standalone_writeback)

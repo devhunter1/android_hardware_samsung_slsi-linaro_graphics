@@ -355,6 +355,8 @@ class ExynosDisplayDrmInterface : public ExynosDisplayInterface,
     bool mCanDisableAllPlanes = false;
     uint64_t mWorkingVsyncPeriod = 0;
     hwc2_config_t mPreferredModeId = 0;
+    bool mFodPending = false;
+    bool mFodCommitted = false;
 };
 
 #endif

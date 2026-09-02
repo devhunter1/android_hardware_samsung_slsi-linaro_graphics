@@ -22,7 +22,6 @@
 #include "ExynosHWCHelper.h"
 
 #define VSYNC_DEV_PREFIX    "/sys/devices/platform/"
-#define DECON_DRM_NODE     "/dev/dri/card0"
 #define PSR_DEV_NAME        "19f00000.decon_0/psr_info"
 
 #define HIBER_EXIT_NODE_NAME    "/sys/devices/platform/19f00000.drmdecon/hiber_exit"
@@ -47,6 +46,8 @@
 #define G2D_CLOCK       712024
 
 #define VOTF_BUF_INDEX_MAX 15
+
+#define HAS_FINGERPRINT_MASK_LAYER
 
 typedef enum assignOrderType {
     ORDER_SAJC,
@@ -102,42 +103,56 @@ struct vOtfInfo_t {
 };
 
 const vOtfInfo_t VOTF_INFO_MAP[] = {
-    {MPP_DPP_G,      0, IDMA(L0), 0, 0},
-    {MPP_DPP_VGRFS,  0, IDMA(L1), 0, 1},
-    {MPP_DPP_GF,     0, IDMA(L2), 0, 2},
-    {MPP_DPP_VGS,    0, IDMA(L3), 0, 3},
-    {MPP_DPP_GF,     1, IDMA(L4), 0, 4},
-    {MPP_DPP_VG,     0, IDMA(L5), 0, 5},
-    {MPP_DPP_G,      1, IDMA(L6), 0, 6},
-    {MPP_DPP_VGFS,   0, IDMA(L7), 0, 7},
-    {MPP_DPP_G,      2, IDMA(L8), 1, 0},
-    {MPP_DPP_VGRFS,  1, IDMA(L9), 1, 1},
-    {MPP_DPP_GF,     2, IDMA(L10), 1, 2},
-    {MPP_DPP_VGS,    1, IDMA(L11), 1, 3},
-    {MPP_DPP_GF,     3, IDMA(L12), 1, 4},
-    {MPP_DPP_VG,     1, IDMA(L13), 1, 5},
-    {MPP_DPP_G,      3, IDMA(L14), 1, 6},
-    {MPP_DPP_VGFS,   1, IDMA(L15), 1, 7}
+    // DPUF0 AXI0
+    {MPP_DPP_GF,     0, IDMA(L0),  0, 0},
+    {MPP_DPP_VGRFS,  0, IDMA(L1),  0, 1},
+    {MPP_DPP_GF,     1, IDMA(L2),  0, 2},
+    {MPP_DPP_VGRFS,  1, IDMA(L3),  0, 3},
+
+    // DPUF0 AXI1
+    {MPP_DPP_GF,     2, IDMA(L4),  0, 4},
+    {MPP_DPP_VGFS,   0, IDMA(L5),  0, 5},
+    {MPP_DPP_GF,     3, IDMA(L6),  0, 6},
+    {MPP_DPP_VGFS,   1, IDMA(L7),  0, 7},
+
+    // DPUF1 AXI0
+    {MPP_DPP_GF,     4, IDMA(L8),  1, 0},
+    {MPP_DPP_VGRFS,  2, IDMA(L9),  1, 1},
+    {MPP_DPP_GF,     5, IDMA(L10), 1, 2},
+    {MPP_DPP_VGRFS,  3, IDMA(L11), 1, 3},
+
+    // DPUF1 AXI1
+    {MPP_DPP_GF,     6, IDMA(L12), 1, 4},
+    {MPP_DPP_VGFS,   2, IDMA(L13), 1, 5},
+    {MPP_DPP_GF,     7, IDMA(L14), 1, 6},
+    {MPP_DPP_VGFS,   3, IDMA(L15), 1, 7}
 };
 
 const dpp_channel_map_t IDMA_CHANNEL_MAP[] = {
-    /* GF physical index is switched to change assign order */
-    {MPP_DPP_G,      0, IDMA_G0,     IDMA(L0)},
+    // DPUF0 AXI0
+    {MPP_DPP_GF,     0, IDMA_GF0,    IDMA(L0)},
     {MPP_DPP_VGRFS,  0, IDMA_VGRFS0, IDMA(L1)},
-    {MPP_DPP_GF,     0, IDMA_GF0,    IDMA(L2)},
-    {MPP_DPP_VGS,    0, IDMA_VGS0,   IDMA(L3)},
-    {MPP_DPP_GF,     1, IDMA_GF1,    IDMA(L4)},
-    {MPP_DPP_VG,     0, IDMA_VG0,    IDMA(L5)},
-    {MPP_DPP_G,      1, IDMA_G1,     IDMA(L6)},
-    {MPP_DPP_VGFS,   0, IDMA_VGFS0,  IDMA(L7)},
-    {MPP_DPP_G,      2, IDMA_G2,     IDMA(L8)},
-    {MPP_DPP_VGRFS,  1, IDMA_VGRFS1, IDMA(L9)},
-    {MPP_DPP_GF,     2, IDMA_GF2,    IDMA(L10)},
-    {MPP_DPP_VGS,    1, IDMA_VGS1,   IDMA(L11)},
-    {MPP_DPP_GF,     3, IDMA_GF3,    IDMA(L12)},
-    {MPP_DPP_VG,     1, IDMA_VG1,    IDMA(L13)},
-    {MPP_DPP_G,      3, IDMA_G3,     IDMA(L14)},
-    {MPP_DPP_VGFS,   1, IDMA_VGFS1,  IDMA(L15)},
+    {MPP_DPP_GF,     1, IDMA_GF1,    IDMA(L2)},
+    {MPP_DPP_VGRFS,  1, IDMA_VGRFS1, IDMA(L3)},
+
+    // DPUF0 AXI1
+    {MPP_DPP_GF,     2, IDMA_GF2,    IDMA(L4)},
+    {MPP_DPP_VGFS,   0, IDMA_VGFS0,  IDMA(L5)},
+    {MPP_DPP_GF,     3, IDMA_GF3,    IDMA(L6)},
+    {MPP_DPP_VGFS,   1, IDMA_VGFS1,  IDMA(L7)},
+
+    // DPUF1 AXI0
+    {MPP_DPP_GF,     4, IDMA_GF4,    IDMA(L8)},
+    {MPP_DPP_VGRFS,  2, IDMA_VGRFS2, IDMA(L9)},
+    {MPP_DPP_GF,     5, IDMA_GF5,    IDMA(L10)},
+    {MPP_DPP_VGRFS,  3, IDMA_VGRFS3, IDMA(L11)},
+
+    // DPUF1 AXI1
+    {MPP_DPP_GF,     6, IDMA_GF6,    IDMA(L12)},
+    {MPP_DPP_VGFS,   2, IDMA_VGFS2,  IDMA(L13)},
+    {MPP_DPP_GF,     7, IDMA_GF7,    IDMA(L14)},
+    {MPP_DPP_VGFS,   3, IDMA_VGFS3,  IDMA(L15)},
+
     {MPP_P_TYPE_MAX, 0, ODMA_WB,     IDMA(WB)}, // not idma but..
     {static_cast<mpp_phycal_type_t>(MAX_DECON_DMA_TYPE), 0, MAX_DECON_DMA_TYPE, IDMA(WB+1)}
 };
@@ -163,7 +178,7 @@ struct exynos_display_t {
  *      0 bit : HWC_DISPLAY_PRIMARY_BIT,
  *      1 bit : HWC_DISPLAY_EXTERNAL_BIT,
  *      2 bit : HWC_DISPLAY_VIRTUAL_BIT,
- *      5 bit : HWC_DISPLAY_EXTERNAL2_BIT,
+ *      5 bit : HWC_DISPLAY_EXTERNAL2_BIT (unused),
  *   EXTERNAL MAIN MODE :
  *      8 bit : EXTERNAL_MAIN_DISPLAY_PRIMARY_BIT,
  *      9 bit : EXTERNAL_MAIN_DISPLAY_EXTERNAL_BIT,
@@ -197,43 +212,86 @@ enum {
     EXTERNAL_MAIN_DISPLAY_VIRTUAL_BIT = 1 << (EXTERNAL_MAIN_DISPLAY_START_BIT + HWC_DISPLAY_VIRTUAL),
 };
 
-enum {
-    HWC_DISPLAY_EXTERNAL2_BIT = 1 << (SECOND_DISPLAY_START_BIT + HWC_DISPLAY_EXTERNAL),
-};
-
 const exynos_mpp_t AVAILABLE_OTF_MPP_UNITS[] = {
-    {MPP_DPP_G, MPP_LOGICAL_DPP_G, "DPP_G0", 0, 0, HWC_DISPLAY_PRIMARY_BIT,
-            static_cast<uint32_t>(DPUF0), static_cast<uint32_t>(AXI0)},
-    {MPP_DPP_VGRFS, MPP_LOGICAL_DPP_VGRFS, "DPP_VGRFS0", 0, 0, HWC_DISPLAY_PRIMARY_BIT,
-            static_cast<uint32_t>(DPUF0), static_cast<uint32_t>(AXI0)},
-    {MPP_DPP_GF, MPP_LOGICAL_DPP_GF, "DPP_GF0", 0, 0, HWC_DISPLAY_EXTERNAL_BIT,
-            static_cast<uint32_t>(DPUF0), static_cast<uint32_t>(AXI0)},
-    {MPP_DPP_VGS, MPP_LOGICAL_DPP_VGS, "DPP_VGS0", 0, 0, HWC_DISPLAY_VIRTUAL_BIT | HWC_DISPLAY_EXTERNAL2_BIT,
-            static_cast<uint32_t>(DPUF0), static_cast<uint32_t>(AXI0)},
-    {MPP_DPP_GF, MPP_LOGICAL_DPP_GF, "DPP_GF1", 1, 0, HWC_DISPLAY_EXTERNAL2_BIT,
-            static_cast<uint32_t>(DPUF0), static_cast<uint32_t>(AXI1)},
-    {MPP_DPP_VG, MPP_LOGICAL_DPP_VG, "DPP_VG0", 0, 0, HWC_DISPLAY_PRIMARY_BIT,
-            static_cast<uint32_t>(DPUF0), static_cast<uint32_t>(AXI1)},
-    {MPP_DPP_G, MPP_LOGICAL_DPP_G, "DPP_G1", 1, 0, HWC_DISPLAY_PRIMARY_BIT,
-            static_cast<uint32_t>(DPUF0), static_cast<uint32_t>(AXI1)},
-    {MPP_DPP_VGFS, MPP_LOGICAL_DPP_VGFS, "DPP_VGFS0", 0, 0, HWC_DISPLAY_VIRTUAL_BIT | HWC_DISPLAY_EXTERNAL_BIT,
-            static_cast<uint32_t>(DPUF0), static_cast<uint32_t>(AXI1)},
-    {MPP_DPP_G, MPP_LOGICAL_DPP_G, "DPP_G2", 2, 0, HWC_DISPLAY_PRIMARY_BIT,
-            static_cast<uint32_t>(DPUF1), static_cast<uint32_t>(AXI1)},
-    {MPP_DPP_VGRFS, MPP_LOGICAL_DPP_VGRFS, "DPP_VGRFS1", 1, 0, HWC_DISPLAY_VIRTUAL_BIT,
-            static_cast<uint32_t>(DPUF1), static_cast<uint32_t>(AXI1)},
-    {MPP_DPP_GF, MPP_LOGICAL_DPP_GF, "DPP_GF2", 2, 0, HWC_DISPLAY_PRIMARY_BIT,
-            static_cast<uint32_t>(DPUF1), static_cast<uint32_t>(AXI1)},
-    {MPP_DPP_VGS, MPP_LOGICAL_DPP_VGS, "DPP_VGS1", 1, 0, HWC_DISPLAY_VIRTUAL_BIT | HWC_DISPLAY_EXTERNAL2_BIT,
-            static_cast<uint32_t>(DPUF1), static_cast<uint32_t>(AXI1)},
-    {MPP_DPP_GF, MPP_LOGICAL_DPP_GF, "DPP_GF3", 3, 0, HWC_DISPLAY_PRIMARY_BIT,
-            static_cast<uint32_t>(DPUF1), static_cast<uint32_t>(AXI0)},
-    {MPP_DPP_VG, MPP_LOGICAL_DPP_VG, "DPP_VG1", 1, 0, HWC_DISPLAY_PRIMARY_BIT,
-            static_cast<uint32_t>(DPUF1), static_cast<uint32_t>(AXI0)},
-    {MPP_DPP_G, MPP_LOGICAL_DPP_G, "DPP_G3", 3, 0, HWC_DISPLAY_PRIMARY_BIT,
-            static_cast<uint32_t>(DPUF1), static_cast<uint32_t>(AXI0)},
-    {MPP_DPP_VGFS, MPP_LOGICAL_DPP_VGFS, "DPP_VGFS1", 1, 0, HWC_DISPLAY_VIRTUAL_BIT | HWC_DISPLAY_EXTERNAL_BIT,
-            static_cast<uint32_t>(DPUF1), static_cast<uint32_t>(AXI0)}
+    {MPP_DPP_GF, MPP_LOGICAL_DPP_GF,
+     "DPP_GF0", 0, 0,
+     HWC_DISPLAY_PRIMARY_BIT,
+     static_cast<uint32_t>(DPUF0), static_cast<uint32_t>(AXI0)},
+
+    {MPP_DPP_VGRFS, MPP_LOGICAL_DPP_VGRFS,
+     "DPP_VGRFS0", 0, 0,
+     HWC_DISPLAY_EXTERNAL_BIT | HWC_DISPLAY_VIRTUAL_BIT,
+     static_cast<uint32_t>(DPUF0), static_cast<uint32_t>(AXI0)},
+
+    {MPP_DPP_GF, MPP_LOGICAL_DPP_GF,
+     "DPP_GF1", 1, 0,
+     HWC_DISPLAY_EXTERNAL_BIT | HWC_DISPLAY_VIRTUAL_BIT,
+     static_cast<uint32_t>(DPUF0), static_cast<uint32_t>(AXI0)},
+
+    {MPP_DPP_VGRFS, MPP_LOGICAL_DPP_VGRFS,
+     "DPP_VGRFS1", 1, 0,
+     HWC_DISPLAY_EXTERNAL_BIT | HWC_DISPLAY_VIRTUAL_BIT,
+     static_cast<uint32_t>(DPUF0), static_cast<uint32_t>(AXI0)},
+
+    {MPP_DPP_GF, MPP_LOGICAL_DPP_GF,
+     "DPP_GF2", 2, 0,
+     HWC_DISPLAY_PRIMARY_BIT,
+     static_cast<uint32_t>(DPUF0), static_cast<uint32_t>(AXI1)},
+
+    {MPP_DPP_VGFS, MPP_LOGICAL_DPP_VGFS,
+     "DPP_VGFS0", 0, 0,
+     HWC_DISPLAY_PRIMARY_BIT,
+     static_cast<uint32_t>(DPUF0), static_cast<uint32_t>(AXI1)},
+
+    {MPP_DPP_GF, MPP_LOGICAL_DPP_GF,
+     "DPP_GF3", 3, 0,
+     HWC_DISPLAY_PRIMARY_BIT,
+     static_cast<uint32_t>(DPUF0), static_cast<uint32_t>(AXI1)},
+
+    {MPP_DPP_VGFS, MPP_LOGICAL_DPP_VGFS,
+     "DPP_VGFS1", 1, 0,
+     HWC_DISPLAY_PRIMARY_BIT,
+     static_cast<uint32_t>(DPUF0), static_cast<uint32_t>(AXI1)},
+
+    {MPP_DPP_GF, MPP_LOGICAL_DPP_GF,
+     "DPP_GF4", 4, 0,
+     HWC_DISPLAY_PRIMARY_BIT,
+     static_cast<uint32_t>(DPUF1), static_cast<uint32_t>(AXI0)},
+
+    {MPP_DPP_VGRFS, MPP_LOGICAL_DPP_VGRFS,
+     "DPP_VGRFS2", 2, 0,
+     HWC_DISPLAY_PRIMARY_BIT,
+     static_cast<uint32_t>(DPUF1), static_cast<uint32_t>(AXI0)},
+
+    {MPP_DPP_GF, MPP_LOGICAL_DPP_GF,
+     "DPP_GF5", 5, 0,
+     HWC_DISPLAY_PRIMARY_BIT,
+     static_cast<uint32_t>(DPUF1), static_cast<uint32_t>(AXI0)},
+
+    {MPP_DPP_VGRFS, MPP_LOGICAL_DPP_VGRFS,
+     "DPP_VGRFS3", 3, 0,
+     HWC_DISPLAY_PRIMARY_BIT,
+     static_cast<uint32_t>(DPUF1), static_cast<uint32_t>(AXI0)},
+
+    {MPP_DPP_GF, MPP_LOGICAL_DPP_GF,
+     "DPP_GF6", 6, 0,
+     HWC_DISPLAY_PRIMARY_BIT,
+     static_cast<uint32_t>(DPUF1), static_cast<uint32_t>(AXI1)},
+
+    {MPP_DPP_VGFS, MPP_LOGICAL_DPP_VGFS,
+     "DPP_VGFS2", 2, 0,
+     HWC_DISPLAY_PRIMARY_BIT,
+     static_cast<uint32_t>(DPUF1), static_cast<uint32_t>(AXI1)},
+
+    {MPP_DPP_GF, MPP_LOGICAL_DPP_GF,
+     "DPP_GF7", 7, 0,
+     HWC_DISPLAY_PRIMARY_BIT,
+     static_cast<uint32_t>(DPUF1), static_cast<uint32_t>(AXI1)},
+
+    {MPP_DPP_VGFS, MPP_LOGICAL_DPP_VGFS,
+     "DPP_VGFS3", 3, 0,
+     HWC_DISPLAY_PRIMARY_BIT,
+     static_cast<uint32_t>(DPUF1), static_cast<uint32_t>(AXI1)}
 };
 
 const exynos_mpp_t AVAILABLE_M2M_MPP_UNITS[] = {
@@ -241,7 +299,6 @@ const exynos_mpp_t AVAILABLE_M2M_MPP_UNITS[] = {
     {MPP_MSC, MPP_LOGICAL_MSC_YUV, "MSC0_VIR0", 0, 1, HWC_DISPLAY_VIRTUAL_BIT},
     {MPP_MSC, MPP_LOGICAL_MSC_YUV, "MSC0_VIR1", 0, 2, HWC_DISPLAY_VIRTUAL_BIT},
     {MPP_MSC, MPP_LOGICAL_MSC_YUV, "MSC0_EXT0", 0, 3, HWC_DISPLAY_EXTERNAL_BIT},
-    {MPP_MSC, MPP_LOGICAL_MSC_YUV, "MSC0_EXT1", 0, 4, HWC_DISPLAY_EXTERNAL2_BIT},
 };
 
 /* AVAILABLE_DISPLAY_UNITS's index is same with index of mDisplays. Many part of exynos HWC operates by order of
@@ -257,9 +314,9 @@ const exynos_mpp_t AVAILABLE_M2M_MPP_UNITS[] = {
      3. For the process about preassigning OTFMPP resources, display that do not use DPU like as virtual display
         should be alligned at the end. */
 const exynos_display_t AVAILABLE_DISPLAY_UNITS[] = {
-    {HWC_DISPLAY_PRIMARY, 0, "PrimaryDisplay",      DECON_DRM_NODE, ""},
-    {HWC_DISPLAY_EXTERNAL, 0, "ExternalDisplay",    DECON_DRM_NODE, ""},
-    {HWC_DISPLAY_VIRTUAL, 0, "VirtualDisplay", DECON_DRM_NODE, ""},
+    {HWC_DISPLAY_PRIMARY, 0, "PrimaryDisplay",      "0", ""},
+    {HWC_DISPLAY_EXTERNAL, 0, "ExternalDisplay",    "1", ""},
+    {HWC_DISPLAY_VIRTUAL, 0, "VirtualDisplay", "2", ""},
 };
 
 #define DISPLAY_COUNT sizeof(AVAILABLE_DISPLAY_UNITS)/sizeof(exynos_display_t)
