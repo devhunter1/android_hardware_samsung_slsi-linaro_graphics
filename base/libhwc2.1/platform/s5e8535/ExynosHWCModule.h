@@ -39,8 +39,6 @@
 
 #define IDMA(x) static_cast<decon_idma_type>(x)
 
-#define USE_DPU_SET_CONFIG
-
 enum {
     HWC_DISPLAY_NONE_BIT = 0
 };
