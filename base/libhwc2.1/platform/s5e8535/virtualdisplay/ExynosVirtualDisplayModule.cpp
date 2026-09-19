@@ -17,8 +17,7 @@
 #define LOG_TAG "virtualdisplaymodule"
 
 #include "ExynosVirtualDisplayModule.h"
-#include "ExynosDisplayFbInterfaceModule.h"
-#include "ExynosVirtualDisplayFbInterfaceModule.h"
+#include "ExynosDisplayDrmInterface.h"
 
 ExynosVirtualDisplayModule::ExynosVirtualDisplayModule(DisplayIdentifier node)
     :   ExynosVirtualDisplay(node)
@@ -39,7 +38,7 @@ void ExynosVirtualDisplayModule::initDisplayInterface(
         uint32_t __unused interfaceType,
         void* deviceData, size_t& deviceDataSize)
 {
-    mDisplayInterface = std::make_unique<ExynosVirtualDisplayFbInterfaceModule>();
+    mDisplayInterface = std::make_unique<ExynosDisplayDrmInterface>();
     mDisplayInterface->init(mDisplayInfo.displayIdentifier,
             deviceData, deviceDataSize);
 }
