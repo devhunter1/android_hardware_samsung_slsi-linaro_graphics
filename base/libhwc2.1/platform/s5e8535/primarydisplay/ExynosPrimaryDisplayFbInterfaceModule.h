@@ -26,7 +26,5 @@ class ExynosPrimaryDisplayFbInterfaceModule : public ExynosPrimaryDisplayFbInter
         virtual ~ExynosPrimaryDisplayFbInterfaceModule();
         virtual decon_idma_type getDeconDMAType(
                 uint32_t type, uint32_t index) override;
-        virtual int32_t configFromDisplayConfig(decon_win_config &config,
-                const exynos_win_config_data &display_config) override;
 };
 #endif

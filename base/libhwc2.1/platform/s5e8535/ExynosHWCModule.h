@@ -22,20 +22,13 @@
 #include "ExynosHWCHelper.h"
 
 #define VSYNC_DEV_PREFIX    "/sys/devices/platform/"
-#define DECON_F_VSYNC_NODE  "16100000.decon_0/vsync"
-#define DECON_F_FB_NODE     "/dev/graphics/fb0"
-#define DECON_S_VSYNC_NODE  "16101000.decon_1/vsync"
-#define DECON_S_FB_NODE     "/dev/graphics/fb1"
-#define DECON_T_VSYNC_NODE  "16102000.decon_2/vsync"
-#define DECON_T_FB_NODE     "/dev/graphics/fb2"
-#define PSR_DEV_NAME        "16100000.decon_0/psr_info"
-#define PSR_DEV_NAME_S      "16101000.decon_1/psr_info"
+#define PSR_DEV_NAME        "14940000.decon_0/psr_info"
 
 #define DP_LINK_NAME	"120b0000.displayport"
 #define DP_UEVENT_NAME	"change@/devices/platform/%s/extcon/extcon0"
 #define DP_CABLE_STATE_NAME "/sys/devices/platform/%s/extcon/extcon0/cable.%d/state"
 
-#define HIBER_EXIT_NODE_NAME    "/sys/devices/platform/16100000.decon_0/hiber_exit"
+#define HIBER_EXIT_NODE_NAME    "/sys/devices/platform/14940000.decon_0/hiber_exit"
 
 #define IDMA(x) static_cast<decon_idma_type>(x)
 
@@ -63,14 +56,14 @@ struct exynos_mpp_t {
  * External display base window is always 0
  */
 const dpp_channel_map_t IDMA_CHANNEL_MAP[] = {
-    {MPP_DPP_G,      0, IDMA_G0,   IDMA(L0)},
-    {MPP_DPP_VGRFS,  0, IDMA_VGRFS0, IDMA(L1)},
-    {MPP_DPP_GF,     0, IDMA_GF0,    IDMA(L2)},
-    {MPP_DPP_VGS,    0, IDMA_VGS0,   IDMA(L3)},
-    {MPP_DPP_GF,     1, IDMA_GF1,    IDMA(L4)},
-    {MPP_DPP_VG,     0, IDMA_VG0,    IDMA(L5)},
-    {MPP_DPP_G,      1, IDMA_G1,     IDMA(L6)},
-    {MPP_DPP_VGFS,   0, IDMA_VGFS0,  IDMA(L7)},
+    {MPP_DPP_G,      0, IDMA_G0,    IDMA(L0)},
+    {MPP_DPP_VGRS,   0, IDMA_VGRS0, IDMA(L1)},
+    {MPP_DPP_G,      1, IDMA_G1,    IDMA(L2)},
+    {MPP_DPP_G,      2, IDMA_G2,    IDMA(L3)},
+    {MPP_DPP_G,      3, IDMA_G3,    IDMA(L4)},
+    {MPP_DPP_VG,     0, IDMA_VG0,   IDMA(L5)},
+    {MPP_DPP_G,      4, IDMA_G4,    IDMA(L6)},
+    {MPP_DPP_G,      5, IDMA_G5,    IDMA(L7)},
     {MPP_P_TYPE_MAX, 0, ODMA_WB,    IDMA(WB)}, // not idma but..
     {static_cast<mpp_phycal_type_t>(MAX_DECON_DMA_TYPE), 0, MAX_DECON_DMA_TYPE, IDMA(WB+1)}
 };
@@ -103,8 +96,6 @@ struct exynos_display_t {
 #define PRIMARY_MAIN_EXTERNAL_WINCNT   2
 #define EXTERNAL_MAIN_EXTERNAL_WINCNT  2
 #define PRIMARY_MAIN_VIRTUAL_WINCNT 2
-#define DEFAULT_MPP_DST_YUV_FORMAT HAL_PIXEL_FORMAT_EXYNOS_YCbCr_420_SPN_SBWC
-#define MSC_CLOCK   663000
 
 enum {
     DISPLAY_MODE_PRIMARY_MAIN = 0,  /* This is default mode */
@@ -128,18 +119,17 @@ enum {
 const exynos_mpp_t AVAILABLE_OTF_MPP_UNITS[] = {
     {MPP_DPP_G, MPP_LOGICAL_DPP_G, "DPP_G0", 0, 0, HWC_DISPLAY_PRIMARY_BIT},
     {MPP_DPP_G, MPP_LOGICAL_DPP_G, "DPP_G1", 1, 0, HWC_DISPLAY_PRIMARY_BIT},
-    {MPP_DPP_GF, MPP_LOGICAL_DPP_GF, "DPP_GF0", 0, 0, HWC_DISPLAY_VIRTUAL_BIT | HWC_DISPLAY_EXTERNAL_BIT},
-    {MPP_DPP_GF, MPP_LOGICAL_DPP_GF, "DPP_GF1", 1, 0, HWC_DISPLAY_PRIMARY_BIT},
+    {MPP_DPP_G, MPP_LOGICAL_DPP_G, "DPP_G2", 2, 0, HWC_DISPLAY_PRIMARY_BIT},
+    {MPP_DPP_G, MPP_LOGICAL_DPP_G, "DPP_G3", 3, 0, HWC_DISPLAY_PRIMARY_BIT},
+    {MPP_DPP_G, MPP_LOGICAL_DPP_G, "DPP_G4", 4, 0, HWC_DISPLAY_PRIMARY_BIT},
+    {MPP_DPP_G, MPP_LOGICAL_DPP_G, "DPP_G5", 5, 0, HWC_DISPLAY_VIRTUAL_BIT},
     {MPP_DPP_VG, MPP_LOGICAL_DPP_VG, "DPP_VG0", 0, 0, HWC_DISPLAY_PRIMARY_BIT},
-    {MPP_DPP_VGS, MPP_LOGICAL_DPP_VGS, "DPP_VGS0", 0, 0, HWC_DISPLAY_PRIMARY_BIT},
-    {MPP_DPP_VGFS, MPP_LOGICAL_DPP_VGFS, "DPP_VGFS0", 0, 0, HWC_DISPLAY_VIRTUAL_BIT | HWC_DISPLAY_EXTERNAL_BIT},
-    {MPP_DPP_VGRFS, MPP_LOGICAL_DPP_VGRFS, "DPP_VGRFS0", 0, 0, HWC_DISPLAY_PRIMARY_BIT}
+    {MPP_DPP_VGRS, MPP_LOGICAL_DPP_VGRS, "DPP_VGRS0", 0, 0, HWC_DISPLAY_VIRTUAL_BIT}
 };
 
 const exynos_mpp_t AVAILABLE_M2M_MPP_UNITS[] = {
     {MPP_MSC, MPP_LOGICAL_MSC, "MSC0_PRI", 0, 0, HWC_DISPLAY_PRIMARY_BIT},
-    {MPP_MSC, MPP_LOGICAL_MSC_YUV, "MSC0_EXT0", 0, 1, HWC_DISPLAY_EXTERNAL_BIT},
-    {MPP_MSC, MPP_LOGICAL_MSC_YUV, "MSC0_VIR0", 0, 2, HWC_DISPLAY_VIRTUAL_BIT},
+    {MPP_MSC, MPP_LOGICAL_MSC_YUV, "MSC0_VIR0", 0, 1, HWC_DISPLAY_VIRTUAL_BIT},
 };
 
 /* AVAILABLE_DISPLAY_UNITS's index is same with index of mDisplays. Many part of exynos HWC operates by order of
@@ -155,9 +145,8 @@ const exynos_mpp_t AVAILABLE_M2M_MPP_UNITS[] = {
      3. For the process about preassigning OTFMPP resources, display that do not use DPU like as virtual display
         should be alligned at the end. */
 const exynos_display_t AVAILABLE_DISPLAY_UNITS[] = {
-    {HWC_DISPLAY_PRIMARY, 0, "PrimaryDisplay",      DECON_F_FB_NODE, DECON_F_VSYNC_NODE},
-    {HWC_DISPLAY_EXTERNAL, 0, "ExternalDisplay",    DECON_T_FB_NODE, DECON_T_VSYNC_NODE},
-    {HWC_DISPLAY_VIRTUAL, 0, "VirtualDisplay", DECON_T_FB_NODE, {}},
+    {HWC_DISPLAY_PRIMARY, 0, "PrimaryDisplay", "0", ""},
+    {HWC_DISPLAY_VIRTUAL, 0, "VirtualDisplay", "1", ""},
 };
 
 #define DISPLAY_COUNT sizeof(AVAILABLE_DISPLAY_UNITS)/sizeof(exynos_display_t)

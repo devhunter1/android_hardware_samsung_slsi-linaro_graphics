@@ -39,12 +39,3 @@ uint32_t ExynosMPPModule::getDstWidthAlign(struct exynos_image &dst)
 
     return ExynosMPP::getDstWidthAlign(dst);
 }
-
-uint32_t ExynosMPPModule::getSrcMaxCropWidth(struct exynos_image &src)
-{
-    if ((mPhysicalType == MPP_DPP_VGFS) && (src.compressionInfo.type == COMP_TYPE_AFBC))
-        return VGFS_AFBC_WIDTH_LIMIT;
-    else
-        return ExynosMPP::getSrcMaxCropWidth(src);
-    return ExynosMPP::getSrcMaxCropWidth(src);
-}

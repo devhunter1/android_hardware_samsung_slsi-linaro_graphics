@@ -25,8 +25,6 @@ class ExynosPrimaryDisplayModule : public ExynosPrimaryDisplay {
         ExynosPrimaryDisplayModule(DisplayIdentifier node);
         ~ExynosPrimaryDisplayModule();
         virtual int32_t validateWinConfigData();
-        virtual int32_t configureOverlay(ExynosCompositionInfo &compositionInfo);
-        virtual void resetForDestroyClient();
 };
 
 #endif

@@ -177,23 +177,6 @@ const restriction_key_t restriction_format_table[] =
     {MPP_MSC, NODE_NONE, HAL_PIXEL_FORMAT_EXYNOS_YCbCr_420_P_M, 0},
     {MPP_MSC, NODE_NONE, HAL_PIXEL_FORMAT_EXYNOS_YCbCr_420_PN, 0},
     {MPP_MSC, NODE_NONE, HAL_PIXEL_FORMAT_EXYNOS_YCbCr_420_SPN_TILED, 0},
-    {MPP_G2D, NODE_NONE, HAL_PIXEL_FORMAT_RGB_565, 0},
-    {MPP_G2D, NODE_NONE, HAL_PIXEL_FORMAT_RGB_888, 0},
-    {MPP_G2D, NODE_NONE, HAL_PIXEL_FORMAT_RGBA_8888, 0},
-    {MPP_G2D, NODE_NONE, HAL_PIXEL_FORMAT_RGBX_8888, 0},
-    {MPP_G2D, NODE_NONE, HAL_PIXEL_FORMAT_BGRA_8888, 0},
-    {MPP_G2D, NODE_NONE, HAL_PIXEL_FORMAT_RGBA_1010102, 0},
-    {MPP_G2D, NODE_NONE, HAL_PIXEL_FORMAT_EXYNOS_YCbCr_420_SP_M, 0},
-    {MPP_G2D, NODE_NONE, HAL_PIXEL_FORMAT_EXYNOS_YCbCr_420_SP_M_PRIV, 0},
-    {MPP_G2D, NODE_NONE, HAL_PIXEL_FORMAT_EXYNOS_YCbCr_420_SP_M_TILED, 0},
-    {MPP_G2D, NODE_NONE, HAL_PIXEL_FORMAT_EXYNOS_YCrCb_420_SP_M, 0},
-    {MPP_G2D, NODE_NONE, HAL_PIXEL_FORMAT_EXYNOS_YCrCb_420_SP_M_FULL, 0},
-    {MPP_G2D, NODE_NONE, HAL_PIXEL_FORMAT_EXYNOS_YCbCr_420_SPN, 0},
-    {MPP_G2D, NODE_NONE, HAL_PIXEL_FORMAT_EXYNOS_YCbCr_420_SP_M_S10B, 0},
-    {MPP_G2D, NODE_NONE, HAL_PIXEL_FORMAT_EXYNOS_YCbCr_420_SPN_S10B, 0},
-    {MPP_G2D, NODE_NONE, HAL_PIXEL_FORMAT_EXYNOS_YCbCr_P010_M, 0},
-    {MPP_G2D, NODE_NONE, HAL_PIXEL_FORMAT_YCrCb_420_SP, 0},
-    {MPP_G2D, NODE_NONE, HAL_PIXEL_FORMAT_EXYNOS_YCbCr_420_SPN_TILED, 0}
 };
 
 const restriction_size_element restriction_size_table_rgb[] =
@@ -218,9 +201,6 @@ const restriction_size_element restriction_size_table_rgb[] =
      {  1,  1,  65535,  8191,   16, 16,   1,  1,  4096,   4096,   16,  16,  1,  1,  1,  1}},
     {{MPP_DPP_VGRFS, NODE_DST, HAL_PIXEL_FORMAT_NONE, 0},
      {  2,  8,  65535,  8191,   16, 16,   1,  1,  4096,   4096,   16,  16,  1,  1,  1,  1}},
-    /* MPP_G2D maxUpScale = max crop size / min crop size */
-    {{MPP_G2D, NODE_NONE, HAL_PIXEL_FORMAT_NONE, 0},
-     {  8192,  8192,  8192,  8192,  1, 1,  1,  1,  8192,  8192,   1, 1,  1,  1,  1,  1}}
 };
 
 const restriction_size_element restriction_size_table_yuv[] =
@@ -237,9 +217,6 @@ const restriction_size_element restriction_size_table_yuv[] =
         {  2,  8,  65534,  8190,   32, 32,  2,  2,  4096,   4096,   32, 32,  2,  2,  2,  2}},
     {{MPP_MSC, NODE_SRC, HAL_PIXEL_FORMAT_NONE, 0},
         {  16,  64,  8192, 8192,  16, 16,  2,  2,  4096,   4096,   16, 16,  2,  2,  2,  2}},
-    /* MPP_G2D maxUpScale = max crop size / min crop size */
-    {{MPP_G2D, NODE_SRC, HAL_PIXEL_FORMAT_NONE, 0},
-        {   4,   8192,  8192,  8192,  2,  2,  2,  2,  8192,   8192,   1,  1,  1,  1,  1,  1}},
     {{MPP_DPP_GF, NODE_DST, HAL_PIXEL_FORMAT_NONE, 0},
         {  1,  1,  65535,  8191,   16, 16,  1,  1,  4096,   4096,   16,  16,  1,  1,  1,  1}},
     {{MPP_DPP_VG, NODE_DST, HAL_PIXEL_FORMAT_NONE, 0},
@@ -252,9 +229,6 @@ const restriction_size_element restriction_size_table_yuv[] =
         {  2,  8,  65535,  8191,   16, 16,  1,  1,  4096,   4096,   16,  16,  1,  1,  1,  1}},
     {{MPP_MSC, NODE_DST, HAL_PIXEL_FORMAT_NONE, 0},
         {  16,  64,  8192,  8192,  4, 4,  2,  2,  8192,   8192,   4, 4,  2,  2,  2,  2}},
-    /* MPP_G2D maxUpScale = max crop size / min crop size */
-    {{MPP_G2D, NODE_DST, HAL_PIXEL_FORMAT_NONE, 0},
-        {   8192,  8192,  8192,  8192,   2,  2,  2,  2,  8192,   8192,   2,  2,  2,  2,  2,  2}}
 };
 
 const restriction_table_element restriction_tables[RESTRICTION_MAX] =
@@ -264,38 +238,14 @@ const restriction_table_element restriction_tables[RESTRICTION_MAX] =
 };
 
 static ppc_table ppc_table_map = {
-    {PPC_IDX(MPP_G2D,PPC_FORMAT_YUV420,PPC_ROT_NO), {2.9, 2.6, 3.4, 5.1, 11.9, 2.6, 3.0}},
-    {PPC_IDX(MPP_G2D,PPC_FORMAT_YUV420,PPC_ROT), {2.0, 1.9, 3.3, 5.2, 7.0, 1.9, 3.2}},
+    {PPC_IDX(MPP_MSC,PPC_FORMAT_YUV420,PPC_ROT_NO), {0.79, }},
+    {PPC_IDX(MPP_MSC,PPC_FORMAT_YUV420,PPC_ROT), {0.79, }},
 
-    {PPC_IDX(MPP_G2D,PPC_FORMAT_YUV8_2,PPC_ROT_NO), {1.9, 1.9, 2.7, 3.1, 4.1, 1.4, 2.4}},
-    {PPC_IDX(MPP_G2D,PPC_FORMAT_YUV8_2,PPC_ROT), {0.9, 0.9, 2.2, 2.0, 3.7, 0.9, 2.5}},
+    {PPC_IDX(MPP_MSC,PPC_FORMAT_YUV422,PPC_ROT_NO), {0.66, }},
+    {PPC_IDX(MPP_MSC,PPC_FORMAT_YUV422,PPC_ROT), {0.66, }},
 
-    {PPC_IDX(MPP_G2D,PPC_FORMAT_YUV422,PPC_ROT_NO), {3.1, 2.2, 3.6, 5.1, 7.0, 2.2, 3.4}},
-    {PPC_IDX(MPP_G2D,PPC_FORMAT_YUV422,PPC_ROT), {2.7, 2.0, 3.0, 5.2, 6.5, 2.0, 3.3}},
-
-    {PPC_IDX(MPP_G2D,PPC_FORMAT_RGB32,PPC_ROT_NO), {3.1, 2.2, 3.6, 5.1, 7.0, 2.2, 3.4}},
-    {PPC_IDX(MPP_G2D,PPC_FORMAT_RGB32,PPC_ROT), {2.7, 2.0, 3.0, 5.2, 6.5, 2.0, 3.3}},
-
-    {PPC_IDX(MPP_G2D,PPC_FORMAT_AFBC,PPC_ROT_NO), {3.0, 1.6, 1.6, 2.4, 3.2, 1.6, 2.8}},
-    {PPC_IDX(MPP_G2D,PPC_FORMAT_AFBC,PPC_ROT), {3.0, 1.6, 1.6, 2.4, 3.2, 1.6, 2.8}},
-
-    {PPC_IDX(MPP_MSC,PPC_FORMAT_YUV420,PPC_ROT_NO), {4.74, }},
-    {PPC_IDX(MPP_MSC,PPC_FORMAT_YUV420,PPC_ROT), {4.44, }},
-
-    {PPC_IDX(MPP_MSC,PPC_FORMAT_YUV422,PPC_ROT_NO), {3.46, }},
-    {PPC_IDX(MPP_MSC,PPC_FORMAT_YUV422,PPC_ROT), {3.38, }},
-
-    {PPC_IDX(MPP_MSC,PPC_FORMAT_P010,PPC_ROT_NO), {3.64, }},
-    {PPC_IDX(MPP_MSC,PPC_FORMAT_P010,PPC_ROT), {3.20, }},
-
-    {PPC_IDX(MPP_MSC,PPC_FORMAT_YUV8_2,PPC_ROT_NO), {4.61, }},
-    {PPC_IDX(MPP_MSC,PPC_FORMAT_YUV8_2,PPC_ROT), {4.59, }},
-
-    {PPC_IDX(MPP_MSC,PPC_FORMAT_RGB32,PPC_ROT_NO), {1.8, }},
-    {PPC_IDX(MPP_MSC,PPC_FORMAT_RGB32,PPC_ROT), {1.85, }},
-
-    {PPC_IDX(MPP_MSC,PPC_FORMAT_SBWC,PPC_ROT_NO), {1.99, }},
-    {PPC_IDX(MPP_MSC,PPC_FORMAT_SBWC,PPC_ROT), {1.9, }}
+    {PPC_IDX(MPP_MSC,PPC_FORMAT_RGB32,PPC_ROT_NO), {0.82, }},
+    {PPC_IDX(MPP_MSC,PPC_FORMAT_RGB32,PPC_ROT), {0.79, }},
 };
 
 #endif

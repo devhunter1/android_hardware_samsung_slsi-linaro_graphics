@@ -31,15 +31,3 @@ decon_idma_type ExynosPrimaryDisplayFbInterfaceModule::getDeconDMAType(
 {
     return getDPPChannel(type, index);
 }
-
-int32_t ExynosPrimaryDisplayFbInterfaceModule::configFromDisplayConfig(decon_win_config &config,
-        const exynos_win_config_data &display_config) {
-    int32_t ret = ExynosPrimaryDisplayFbInterface::configFromDisplayConfig(config, display_config);
-
-    if (display_config.hdrLayerDataspace != HAL_DATASPACE_UNKNOWN) {
-        uint32_t transfer = (display_config.hdrLayerDataspace & HAL_DATASPACE_TRANSFER_MASK);
-        if (dataspace_transfer_map.find(transfer) != dataspace_transfer_map.end())
-            config.dpp_parm.hdr_std = dataspace_transfer_map.at(transfer).hdr_std;
-    }
-    return ret;
-}
