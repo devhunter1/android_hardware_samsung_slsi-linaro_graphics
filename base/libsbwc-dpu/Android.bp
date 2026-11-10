@@ -18,7 +18,6 @@ cc_library_static {
     shared_libs: [
         "liblog",
         "libsync",
-        "libion",
         "libion_exynos",
     ],
     export_include_dirs: ["include"],
