@@ -404,6 +404,57 @@ int DmabufExporter::sync(int ion_fd, int fd, int direction, int sync) {
     return 0;
 }
 
+unsigned int DmabufExporter::heap_mask(const char *heap_name) {
+    unsigned int id;
+
+    if (heap_name == NULL)
+        return 0;
+
+    if (version == ION_MODERN_VERSION) {
+        struct ion_heap_query query;
+        struct ion_exynos_heap_data data[ION_NUM_HEAP_IDS];
+        unsigned int i;
+        int ion_fd = systemInterface.Open("/dev/ion");
+
+        if (ion_fd < 0) {
+            ALOGE("%s: open /dev/ion failed: %s", __func__, strerror(errno));
+            return 0;
+        }
+
+        memset(&data, 0, sizeof(data));
+        memset(&query, 0, sizeof(query));
+        query.cnt = ION_NUM_HEAP_IDS;
+        query.heaps = (__u64)data;
+
+        if (systemInterface.Ioctl(ion_fd, ION_IOC_HEAP_QUERY, &query) < 0) {
+            ALOGE("%s: failed query heaps: %s", __func__, strerror(errno));
+            systemInterface.Close(ion_fd);
+            return 0;
+        }
+        systemInterface.Close(ion_fd);
+
+        if (query.cnt > ION_NUM_HEAP_IDS)
+            query.cnt = ION_NUM_HEAP_IDS;
+
+        for (i = 0; i < query.cnt; i++) {
+            if (!strncmp(data[i].name, heap_name, strlen(heap_name)))
+                return 1 << data[i].heap_id;
+        }
+        return 0;
+    }
+
+    /*
+     * Legacy ion (and dma-heap): the heap id is fixed and given by the
+     * index in ion_heap_name[]. Unknown names fall back to the system heap.
+     */
+    for (id = 0; id < ION_NUM_HEAP_NAMES; id++) {
+        if (ion_heap_name[id].namelen &&
+            !strncmp(ion_heap_name[id].name, heap_name, strlen(heap_name)))
+            return 1 << id;
+    }
+    return EXYNOS_ION_HEAP_SYSTEM_MASK;
+}
+
 DmabufExporter& getDefaultExporter(void) {
     static DefaultSystemInterface systemInterface;
     static DmabufExporter exporter(systemInterface);
@@ -411,6 +462,9 @@ DmabufExporter& getDefaultExporter(void) {
     return exporter;
 }
 
+unsigned int exynos_ion_get_heap_mask(const char *heap_name) {
+    return getDefaultExporter().heap_mask(heap_name);
+}
 int exynos_ion_open() {
     return getDefaultExporter().open();
 }
