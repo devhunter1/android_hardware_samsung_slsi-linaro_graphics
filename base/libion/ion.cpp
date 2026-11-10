@@ -20,7 +20,6 @@
 #include <errno.h>
 #include <fcntl.h>
 #include <hardware/exynos/ion.h>
-#include <ion/ion.h>
 #include <linux/dma-buf.h>
 #include <linux/dma-heap.h>
 #include <log/log.h>

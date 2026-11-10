@@ -19,7 +19,8 @@ cc_library {
         "ion.cpp",
         "dmabuf_container.c",
     ],
-    shared_libs: ["liblog", "libion"],
+    shared_libs: ["liblog"],
+    header_libs: ["libion_headers"],
     local_include_dirs: [
         "include",
     ],
