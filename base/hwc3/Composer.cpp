@@ -48,6 +48,20 @@ ndk::ScopedAStatus Composer::createClient(std::shared_ptr<IComposerClient>* outC
     return ndk::ScopedAStatus::ok();
 }
 
+void Composer::powerOffDisplays() {
+    DEBUG_FUNC();
+    // libhwc2.1 numbers the physical displays from 0, stop at the first unknown one
+    for (int64_t display = 0;; display++) {
+        DisplayConnectionType type;
+        if (mHal->getDisplayConnectionType(display, &type)) {
+            break;
+        }
+        if (int32_t err = mHal->setPowerMode(display, PowerMode::OFF)) {
+            LOG(ERROR) << "failed to power off display " << display << ": " << err;
+        }
+    }
+}
+
 binder_status_t Composer::dump(int fd, const char** /*args*/, uint32_t /*numArgs*/) {
     std::string output;
     mHal->dumpDebugInfo(&output);
