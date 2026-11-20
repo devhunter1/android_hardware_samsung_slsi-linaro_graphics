@@ -18,15 +18,15 @@
 
 #include "ExynosDisplay.h"
 #include "ExynosPrimaryDisplay.h"
-#include "ExynosHWCDebug.h"
 
 class ExynosPrimaryDisplayModule : public ExynosPrimaryDisplay {
     public:
         ExynosPrimaryDisplayModule(DisplayIdentifier node);
         ~ExynosPrimaryDisplayModule();
         virtual int32_t validateWinConfigData();
-        virtual int32_t configureOverlay(ExynosCompositionInfo &compositionInfo);
-        virtual void resetForDestroyClient();
+        virtual bool isEnabled() {
+            return mPlugState;
+        }
 };
 
 #endif

@@ -19,11 +19,10 @@
 
 #include "ExynosDevice.h"
 
-
 class ExynosDeviceModule : public ExynosDevice {
     public:
         ExynosDeviceModule();
-        ~ExynosDeviceModule();
+        virtual ~ExynosDeviceModule();
 };
 
 #endif

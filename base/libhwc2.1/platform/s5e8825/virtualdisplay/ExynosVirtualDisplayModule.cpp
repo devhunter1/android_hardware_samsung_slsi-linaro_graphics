@@ -17,17 +17,16 @@
 #define LOG_TAG "virtualdisplaymodule"
 
 #include "ExynosVirtualDisplayModule.h"
-#include "ExynosDisplayFbInterfaceModule.h"
-#include "ExynosVirtualDisplayFbInterfaceModule.h"
+#include "ExynosDisplayDrmInterface.h"
 
 ExynosVirtualDisplayModule::ExynosVirtualDisplayModule(DisplayIdentifier node)
     :   ExynosVirtualDisplay(node)
 {
     mGLESFormat = HAL_PIXEL_FORMAT_EXYNOS_YCbCr_420_SP_M;
 
+    mUseDpu = true;
     mBaseWindowIndex = 0;
     mMaxWindowNum = 2;
-    mUseDpu = true;
 }
 
 ExynosVirtualDisplayModule::~ExynosVirtualDisplayModule ()
@@ -39,7 +38,7 @@ void ExynosVirtualDisplayModule::initDisplayInterface(
         uint32_t __unused interfaceType,
         void* deviceData, size_t& deviceDataSize)
 {
-    mDisplayInterface = std::make_unique<ExynosVirtualDisplayFbInterfaceModule>();
+    mDisplayInterface = std::make_unique<ExynosDisplayDrmInterface>();
     mDisplayInterface->init(mDisplayInfo.displayIdentifier,
             deviceData, deviceDataSize);
 }

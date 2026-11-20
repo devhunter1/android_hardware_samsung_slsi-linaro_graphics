@@ -16,11 +16,10 @@
 
 #include "ExynosMPPModule.h"
 #include "ExynosHWCDebug.h"
-#include "ExynosResourceManager.h"
-#include "ExynosResourceRestriction.h"
+#include "ExynosVirtualDisplay.h"
 
-ExynosMPPModule::ExynosMPPModule(uint32_t physicalType, uint32_t logicalType,
-        const char *name, uint32_t physicalIndex, uint32_t logicalIndex,
+ExynosMPPModule::ExynosMPPModule(uint32_t physicalType, uint32_t logicalType, const char *name,
+        uint32_t physicalIndex, uint32_t logicalIndex,
         uint32_t preAssignInfo, uint32_t mppType)
     : ExynosMPP(physicalType, logicalType, name, physicalIndex, logicalIndex, preAssignInfo, mppType)
 {
@@ -37,14 +36,12 @@ uint32_t ExynosMPPModule::getDstWidthAlign(struct exynos_image &dst)
         (mPhysicalType == MPP_MSC))
         return 4;
 
-    return ExynosMPP::getDstWidthAlign(dst);
+    return  ExynosMPP::getDstWidthAlign(dst);
 }
 
 uint32_t ExynosMPPModule::getSrcMaxCropWidth(struct exynos_image &src)
 {
-    if ((mPhysicalType == MPP_DPP_VGFS) && (src.compressionInfo.type == COMP_TYPE_AFBC))
+    if ((getRestrictionClassification(src) == 5) && (src.compressionInfo.type == COMP_TYPE_AFBC))
         return VGFS_AFBC_WIDTH_LIMIT;
-    else
-        return ExynosMPP::getSrcMaxCropWidth(src);
     return ExynosMPP::getSrcMaxCropWidth(src);
 }

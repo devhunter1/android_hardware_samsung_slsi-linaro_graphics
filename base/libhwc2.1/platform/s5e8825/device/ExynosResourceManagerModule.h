@@ -21,7 +21,7 @@
 class ExynosResourceManagerModule : public ExynosResourceManager {
     public:
         ExynosResourceManagerModule();
-        virtual ~ExynosResourceManagerModule();
+        ~ExynosResourceManagerModule();
         virtual void preAssignWindows() override;
 };
 

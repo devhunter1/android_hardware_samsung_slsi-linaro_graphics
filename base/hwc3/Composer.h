@@ -34,6 +34,8 @@ public:
     ndk::ScopedAStatus createClient(std::shared_ptr<IComposerClient>* client) override;
     ndk::ScopedAStatus getCapabilities(std::vector<Capability>* caps) override;
 
+    void powerOffDisplays();
+
 protected:
     ::ndk::SpAIBinder createBinder() override;
 

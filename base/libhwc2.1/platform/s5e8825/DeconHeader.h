@@ -19,22 +19,21 @@
 #ifndef ___SAMSUNG_DECON_H__
 #define ___SAMSUNG_DECON_H__
 #include "DeconCommonHeader.h"
-#define S3C_FB_MAX_WIN (8)
-#define MAX_DECON_WIN (8)
+#define S3C_FB_MAX_WIN (16)
+#define MAX_DECON_WIN (16)
 #define DECON_WIN_UPDATE_IDX MAX_DECON_WIN
+#define DECON_READBACK_IDX (MAX_DECON_WIN+1)
+#define DECON_WRITEBACK_IDX (MAX_DECON_WIN+1)
 #define MAX_PLANE_CNT (3)
 #define SUCCESS_EXYNOS_SMC 0
-#define HDR_CAPABILITIES_NUM 4
 typedef unsigned int u32;
 #ifdef USES_ARCH_ARM64
 typedef uint64_t dma_addr_t;
 #else
 typedef uint32_t dma_addr_t;
 #endif
+#define CHIP_VER (991)
 #define MAX_RES_NUMBER 5
-#define MAX_FMT_CNT 64
-#define MAX_DPP_CNT 7
-#define DECON_WRITEBACK_IDX (MAX_DECON_WIN + 1)
 
 struct lcd_res_info {
   unsigned int width;
@@ -128,6 +127,7 @@ struct decon_win_config {
 struct decon_win_config_data {
   int present_fence;
   int fd_odma;
+  /* vrefresh rate */
   u32 fps;
   struct decon_win_config config[MAX_DECON_WIN + 2];
 };
@@ -145,4 +145,5 @@ struct decon_dual_display_blank_data {
   } display_type;
   int blank;
 };
+
 #endif

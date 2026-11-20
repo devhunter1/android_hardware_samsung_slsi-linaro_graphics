@@ -72,6 +72,7 @@ public:
     int sync_fd(int ion_fd, int fd);
     int sync_fd_partial(int ion_fd, int fd, off_t offset, size_t len);
     int sync(int ion_fd, int fd, int direction, int sync);
+    unsigned int heap_mask(const char *heap_name);
     int trace_buffer(int fd);
     int untrace_buffer(int fd);
 

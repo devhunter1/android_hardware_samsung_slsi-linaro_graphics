@@ -14,13 +14,16 @@
  * limitations under the License.
  */
 
+#include <hardware/hardware.h>
 #include "ExynosPrimaryDisplayModule.h"
 #include "ExynosHWCDebug.h"
 #include "ExynosLayer.h"
+#include "ExynosGraphicBuffer.h"
+
+using namespace vendor::graphics;
 
 ExynosPrimaryDisplayModule::ExynosPrimaryDisplayModule(DisplayIdentifier node)
-    :    ExynosPrimaryDisplay(node)
-{
+    :    ExynosPrimaryDisplay(node) {
 }
 
 ExynosPrimaryDisplayModule::~ExynosPrimaryDisplayModule () {
@@ -28,59 +31,9 @@ ExynosPrimaryDisplayModule::~ExynosPrimaryDisplayModule () {
 
 int32_t ExynosPrimaryDisplayModule::validateWinConfigData()
 {
-    if (mDisplayConfigPending)
+    if (mDisplayConfigPending) {
         setActiveConfigInternal(mActiveConfig);
+    }
 
     return ExynosDisplay::validateWinConfigData();
-}
-
-int32_t ExynosPrimaryDisplayModule::configureOverlay(ExynosCompositionInfo &compositionInfo) {
-    int32_t ret = ExynosDisplay::configureOverlay(compositionInfo);
-    int32_t windowIndex = compositionInfo.mWindowIndex;
-
-    if ((windowIndex < 0) || (windowIndex >= (int32_t)mDpuData.configs.size())) {
-        DISPLAY_LOGE("%s:: ExynosCompositionInfo(%d) has invalid data, windowIndex(%d)",
-                __func__, compositionInfo.mType, windowIndex);
-        return -EINVAL;
-    }
-    exynos_win_config_data &config = mDpuData.configs[windowIndex];
-
-    if (config.fd_idma[2] == -1) {
-        int hdrIndex = -1;
-
-        for (size_t i = (size_t)compositionInfo.mFirstIndex; i <= (size_t)compositionInfo.mLastIndex; i++) {
-            ExynosLayer *layer = mLayers[i];
-            if (layer->mIsHdrLayer == true) {
-                if (layer->mExynosCompositionType == HWC2_COMPOSITION_DEVICE) {
-                    continue;
-                } else {
-                    config.hdrLayerDataspace = layer->mDataSpace;
-                    hdrIndex = i;
-                }
-            }
-        }
-        if (hdrIndex >= 0) {
-            /* When GPU target buffer includes HDR layer,
-               HDR metadata is set the fd2 of GPU target buffer */
-            if (mLayers[hdrIndex]->mMetaParcelFd >= 0)
-                config.fd_idma[2] = mLayers[hdrIndex]->mMetaParcelFd;
-        }
-    }
-    return ret;
-}
-
-void ExynosPrimaryDisplayModule::resetForDestroyClient() {
-    if (!mPlugState)
-        return;
-
-    mConfigRequestState = hwc_request_state_t::SET_CONFIG_STATE_NONE;
-    mDesiredConfig = 0;
-    uint64_t temp = 0;
-    setPowerMode(HWC2_POWER_MODE_ON, temp);
-    mActiveConfig = mDisplayInterface->getPreferredModeId();
-    setActiveConfigInternal(mActiveConfig);
-    setVsyncEnabledInternal(HWC2_VSYNC_DISABLE);
-    mVsyncCallback.resetVsyncTimeStamp();
-    mVsyncCallback.resetDesiredVsyncPeriod();
-    mVsyncCallback.enableVSync(0);
 }

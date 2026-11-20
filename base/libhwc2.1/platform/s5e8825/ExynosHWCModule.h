@@ -22,19 +22,19 @@
 #include "ExynosHWCHelper.h"
 
 #define VSYNC_DEV_PREFIX    "/sys/devices/platform/"
-#define DECON_DRM_NODE     "/dev/dri/card0"
-#define PSR_DEV_NAME        "14900000.decon_0/psr_info"
-
-#define DP_LINK_NAME	"120b0000.displayport"
-#define DP_UEVENT_NAME	"change@/devices/platform/%s/extcon/extcon0"
-#define DP_CABLE_STATE_NAME "/sys/devices/platform/%s/extcon/extcon0/cable.%d/state"
-
-#define BRIGHTNESS_NODE_BASE "/sys/class/backlight/panel/brightness"
-#define MAX_BRIGHTNESS_NODE_BASE "/sys/class/backlight/panel/max_brightness"
+#define PSR_DEV_NAME        "14940000.decon_0/psr_info"
 
 #define HIBER_EXIT_NODE_NAME    "/sys/devices/platform/14940000.decon_0/hiber_exit"
+#define BRIGHTNESS_NODE_BASE    "/sys/class/backlight/panel/brightness"
+#define MAX_BRIGHTNESS_NODE_BASE    "/sys/class/backlight/panel/max_brightness"
+
+#define DP_LINK_NAME        "120b0000.displayport"
+#define DP_UEVENT_NAME      "change@/devices/platform/%s/extcon/extcon0"
+#define DP_CABLE_STATE_NAME "/sys/devices/platform/%s/extcon/extcon0/cable.%d/state"
 
 #define IDMA(x) static_cast<decon_idma_type>(x)
+
+#define MSC_CLOCK   800000
 
 #define HAS_FINGERPRINT_MASK_LAYER
 
@@ -57,10 +57,6 @@ struct exynos_mpp_t {
     uint32_t pre_assign_info;
 };
 
-/*
- * This is base window index of primary display for each display mode.
- * External display base window is always 0
- */
 const dpp_channel_map_t IDMA_CHANNEL_MAP[] = {
     {MPP_DPP_G,      0, IDMA_G0,   IDMA(L0)},
     {MPP_DPP_VGRFS,  0, IDMA_VGRFS0, IDMA(L1)},
@@ -83,27 +79,31 @@ struct exynos_display_t {
     char vsync_node_name[MAX_NAME_SIZE];
 };
 
+/******** Description about display bit ********/
+/*   DISPLAY BIT = 1 << (DISPLAY_MODE_MASK_LEN * display mode
+ *                       + SECOND_DISPLAY_START_BIT * display index
+ *                       + display type);
+ *   ex) HWC_DISPLAY_EXTERNAL2_BIT = 1 << (DISPLAY_MODE_MASK_LEN * display mode(0)
+ *                                         + SECOND_DISPLAY_START_BIT * display index(1)
+ *                                         + displayy type(1))
+ *                                 = 1 << 5
+ *   PRIMARY MAIN MODE :
+ *      0 bit : HWC_DISPLAY_PRIMARY_BIT,
+ *      1 bit : HWC_DISPLAY_EXTERNAL_BIT,
+ *      2 bit : HWC_DISPLAY_VIRTUAL_BIT,
+ *      5 bit : HWC_DISPLAY_EXTERNAL2_BIT (unused),
+ *   EXTERNAL MAIN MODE :
+ *      8 bit : EXTERNAL_MAIN_DISPLAY_PRIMARY_BIT,
+ *      9 bit : EXTERNAL_MAIN_DISPLAY_EXTERNAL_BIT,
+ *      10 bit : EXTERNAL_MAIN_DISPLAY_VIRTUAL_BIT,
+ ***************************************************/
 
+#define PRIMARY_MAIN_EXTERNAL_WINCNT 2
+#define PRIMARY_MAIN_VIRTUAL_WINCNT  2
 
 #define DISPLAY_MODE_MASK_LEN    8
 #define DISPLAY_MODE_MASK_BIT    0xff
-
-/* Decon WB */
-//#define DECON_WB_DEV_NAME "/dev/graphics/fb2"
-#define DECON_PRIMARY_DEV_NAME  "/dev/graphics/fb0"
-#define DECON_WB_DEV_NAME       "/dev/graphics/fb1"
-#define DECON_EXTERNAL_DEV_NAME "/dev/graphics/fb1"
-#define DECON_PAD_WB            8
-#define DECON_WB_SUBDEV_NAME    "exynos-decon2"
-#define DECON_EXT_BASE_WINDOW   0
-#define PRIMARY_MAIN_BASE_WIN   2
-#define EXTERNAL_MAIN_BASE_WIN  4
-
-#define PRIMARY_MAIN_EXTERNAL_WINCNT   2
-#define EXTERNAL_MAIN_EXTERNAL_WINCNT  2
-#define PRIMARY_MAIN_VIRTUAL_WINCNT 2
-#define DEFAULT_MPP_DST_YUV_FORMAT HAL_PIXEL_FORMAT_EXYNOS_YCbCr_420_SPN_SBWC
-#define MSC_CLOCK   800000
+#define SECOND_DISPLAY_START_BIT   4
 
 enum {
     DISPLAY_MODE_PRIMARY_MAIN = 0,  /* This is default mode */
@@ -113,9 +113,9 @@ enum {
 
 /*
  * This is base window index of primary display for each display mode.
- * External display base window is always
+ * External display base window is always 0
  */
-const uint32_t EXTERNAL_WINDOW_COUNT[] = {PRIMARY_MAIN_EXTERNAL_WINCNT, EXTERNAL_MAIN_EXTERNAL_WINCNT};
+const uint32_t EXTERNAL_WINDOW_COUNT[] = {PRIMARY_MAIN_EXTERNAL_WINCNT, PRIMARY_MAIN_VIRTUAL_WINCNT};
 
 #define EXTERNAL_MAIN_DISPLAY_START_BIT (DISPLAY_MODE_MASK_LEN * DISPLAY_MODE_EXTERNAL_MAIN)
 enum {
@@ -127,18 +127,17 @@ enum {
 const exynos_mpp_t AVAILABLE_OTF_MPP_UNITS[] = {
     {MPP_DPP_G, MPP_LOGICAL_DPP_G, "DPP_G0", 0, 0, HWC_DISPLAY_PRIMARY_BIT},
     {MPP_DPP_G, MPP_LOGICAL_DPP_G, "DPP_G1", 1, 0, HWC_DISPLAY_PRIMARY_BIT},
-    {MPP_DPP_GF, MPP_LOGICAL_DPP_GF, "DPP_GF0", 0, 0, HWC_DISPLAY_VIRTUAL_BIT | HWC_DISPLAY_EXTERNAL_BIT},
+    {MPP_DPP_GF, MPP_LOGICAL_DPP_GF, "DPP_GF0", 0, 0, HWC_DISPLAY_VIRTUAL_BIT},
     {MPP_DPP_GF, MPP_LOGICAL_DPP_GF, "DPP_GF1", 1, 0, HWC_DISPLAY_PRIMARY_BIT},
     {MPP_DPP_VG, MPP_LOGICAL_DPP_VG, "DPP_VG0", 0, 0, HWC_DISPLAY_PRIMARY_BIT},
     {MPP_DPP_VGS, MPP_LOGICAL_DPP_VGS, "DPP_VGS0", 0, 0, HWC_DISPLAY_PRIMARY_BIT},
-    {MPP_DPP_VGFS, MPP_LOGICAL_DPP_VGFS, "DPP_VGFS0", 0, 0, HWC_DISPLAY_VIRTUAL_BIT | HWC_DISPLAY_EXTERNAL_BIT},
+    {MPP_DPP_VGFS, MPP_LOGICAL_DPP_VGFS, "DPP_VGFS0", 0, 0, HWC_DISPLAY_VIRTUAL_BIT},
     {MPP_DPP_VGRFS, MPP_LOGICAL_DPP_VGRFS, "DPP_VGRFS0", 0, 0, HWC_DISPLAY_PRIMARY_BIT}
 };
 
 const exynos_mpp_t AVAILABLE_M2M_MPP_UNITS[] = {
     {MPP_MSC, MPP_LOGICAL_MSC, "MSC0_PRI", 0, 0, HWC_DISPLAY_PRIMARY_BIT},
-    {MPP_MSC, MPP_LOGICAL_MSC_YUV, "MSC0_EXT0", 0, 1, HWC_DISPLAY_EXTERNAL_BIT},
-    {MPP_MSC, MPP_LOGICAL_MSC_YUV, "MSC0_VIR0", 0, 2, HWC_DISPLAY_VIRTUAL_BIT},
+    {MPP_MSC, MPP_LOGICAL_MSC_YUV, "MSC0_VIR0", 0, 1, HWC_DISPLAY_VIRTUAL_BIT},
 };
 
 /* AVAILABLE_DISPLAY_UNITS's index is same with index of mDisplays. Many part of exynos HWC operates by order of
@@ -154,19 +153,15 @@ const exynos_mpp_t AVAILABLE_M2M_MPP_UNITS[] = {
      3. For the process about preassigning OTFMPP resources, display that do not use DPU like as virtual display
         should be alligned at the end. */
 const exynos_display_t AVAILABLE_DISPLAY_UNITS[] = {
-    {HWC_DISPLAY_PRIMARY, 0, "PrimaryDisplay",      DECON_DRM_NODE, ""},
-    {HWC_DISPLAY_EXTERNAL, 0, "ExternalDisplay",    DECON_DRM_NODE, ""},
-    {HWC_DISPLAY_VIRTUAL, 0, "VirtualDisplay", DECON_DRM_NODE, ""},
+    {HWC_DISPLAY_PRIMARY, 0, "PrimaryDisplay",      "0", ""},
+    {HWC_DISPLAY_VIRTUAL, 0, "VirtualDisplay", "1", ""},
 };
 
 #define DISPLAY_COUNT sizeof(AVAILABLE_DISPLAY_UNITS)/sizeof(exynos_display_t)
 
-const uint32_t ATTRIBUTE_PRIORITY_LIST[] = {
-    ATTRIBUTE_AFBC_NO_RESTRICTION,
-    ATTRIBUTE_HDR10PLUS,
-};
+const uint32_t ATTRIBUTE_PRIORITY_LIST[] = {};
 
-const size_t product_layerAttributePriority[] = {ATTRIBUTE_DRM, ATTRIBUTE_HDR10PLUS, ATTRIBUTE_HDR10};
+const size_t product_layerAttributePriority[] = {ATTRIBUTE_DRM, ATTRIBUTE_HDR10};
 
 struct display_resource_info_t {
     uint32_t displayId;
@@ -180,5 +175,4 @@ struct display_resource_info_t {
 
 const display_resource_info_t RESOURCE_INFO_TABLE[] = {
 };
-
 #endif

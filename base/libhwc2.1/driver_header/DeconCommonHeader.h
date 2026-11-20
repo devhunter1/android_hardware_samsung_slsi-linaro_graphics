@@ -206,6 +206,8 @@ struct dpp_restriction {
 };
 struct dpp_ch_restriction {
     int id;
+    int port = -1;
+    int dpuf_id = -1;
     unsigned long attr;
     struct dpp_restriction restriction;
     u32 reserved[4];

@@ -13,11 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 #include "ExynosResourceManagerModule.h"
 #include "ExynosPrimaryDisplayModule.h"
-#include "ExynosMPPModule.h"
-#include "ExynosLayer.h"
-#include "ExynosHWCHelper.h"
 
 ExynosResourceManagerModule::ExynosResourceManagerModule()
         : ExynosResourceManager()
@@ -40,8 +38,8 @@ void ExynosResourceManagerModule::preAssignWindows()
     bool externalConnected = false;
     for (auto display: mDisplays) {
         if ((display == nullptr) ||
-                (display->mType == HWC_DISPLAY_PRIMARY) ||
-                (display->mUseDpu == false))
+            (display->mType == HWC_DISPLAY_PRIMARY) ||
+            (display->mUseDpu == false))
             continue;
         if (display->mPlugState == true) {
             if (display->mType == HWC_DISPLAY_VIRTUAL)

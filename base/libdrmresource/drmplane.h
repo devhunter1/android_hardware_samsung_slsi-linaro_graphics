@@ -70,6 +70,7 @@ class DrmPlane {
   const DrmProperty &colormap_property() const;
   const DrmProperty &hdr_fd_property() const;
   const DrmProperty &virtual8k_split_property() const;
+  const DrmProperty &restrictions_property() const;
 
   const std::vector<DrmProperty *> &properties() const {
       return properties_;
@@ -113,6 +114,7 @@ class DrmPlane {
   DrmProperty colormap_;
   DrmProperty hdr_fd_;
   DrmProperty virtual8k_split_;
+  DrmProperty restrictions_;
 
   std::vector<DrmProperty *> properties_;
   std::vector<uint32_t> formats_;

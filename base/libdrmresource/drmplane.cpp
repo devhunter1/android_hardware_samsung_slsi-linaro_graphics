@@ -186,6 +186,9 @@ int DrmPlane::Init() {
   if (drm_->GetPlaneProperty(*this, "colormap", &colormap_))
       ALOGI("Could not get colormap property");
 
+  if (drm_->GetPlaneProperty(*this, "restrictions", &restrictions_))
+      ALOGI("Could not get restrictions property");
+
   properties_.push_back(&crtc_property_);
   properties_.push_back(&fb_property_);
   properties_.push_back(&crtc_x_property_);
@@ -213,6 +216,7 @@ int DrmPlane::Init() {
   properties_.push_back(&colormap_);
   properties_.push_back(&hdr_fd_);
   properties_.push_back(&virtual8k_split_);
+  properties_.push_back(&restrictions_);
 
   return 0;
 }
@@ -335,6 +339,10 @@ const DrmProperty &DrmPlane::hdr_fd_property() const {
 
 const DrmProperty &DrmPlane::virtual8k_split_property() const {
   return virtual8k_split_;
+}
+
+const DrmProperty &DrmPlane::restrictions_property() const {
+  return restrictions_;
 }
 
 }  // namespace android

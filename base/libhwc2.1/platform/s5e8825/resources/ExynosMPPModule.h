@@ -19,14 +19,14 @@
 #include "ExynosMPP.h"
 
 static constexpr uint32_t VGFS_AFBC_WIDTH_LIMIT = 2048;
-
 class ExynosMPPModule : public ExynosMPP {
     public:
         ExynosMPPModule(uint32_t physicalType, uint32_t logicalType, const char *name,
             uint32_t physicalIndex, uint32_t logicalIndex, uint32_t preAssignInfo, uint32_t mppType);
         ~ExynosMPPModule();
-        virtual uint32_t getSrcMaxCropWidth(struct exynos_image &src);
+
         virtual uint32_t getDstWidthAlign(struct exynos_image &dst);
+        virtual uint32_t getSrcMaxCropWidth(struct exynos_image &src);
 };
 
 #endif

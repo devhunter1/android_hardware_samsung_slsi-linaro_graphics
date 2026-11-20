@@ -23,7 +23,6 @@
 #include <linux/types.h>
 #include <linux/ion.h>
 #include <linux/ion_4.19.h>
-#include <ion/ion.h>
 
 #define DMA_BUF_IOCTL_TRACK    _IO('b', 8)
 #define DMA_BUF_IOCTL_UNTRACK  _IO('b', 9)

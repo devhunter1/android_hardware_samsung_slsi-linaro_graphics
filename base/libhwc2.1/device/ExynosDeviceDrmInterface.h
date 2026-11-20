@@ -33,6 +33,8 @@ class ExynosDeviceDrmInterface : public ExynosDeviceInterface,
     void HandleEvent(uint64_t timestamp_us) override;
     void setDppChannelRestriction(struct dpp_ch_restriction &common_restriction,
                                 struct drm_dpp_ch_restriction &drm_restriction);
+    void setDppChannelRestriction(struct dpp_ch_restriction &common_restriction,
+                                  drmModePropertyBlobPtr blob);
     void HandlePanelEvent(uint64_t timestamp_us) override;
   protected:
     ResourceManager mDrmResourceManager;

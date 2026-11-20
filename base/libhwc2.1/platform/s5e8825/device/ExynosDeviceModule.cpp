@@ -16,8 +16,7 @@
 
 #include "ExynosDeviceModule.h"
 
-ExynosDeviceModule::ExynosDeviceModule()
-{
+ExynosDeviceModule::ExynosDeviceModule() {
 }
 
 ExynosDeviceModule::~ExynosDeviceModule() {

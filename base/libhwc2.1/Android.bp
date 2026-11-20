@@ -98,7 +98,6 @@ cc_defaults {
         "libutils",
         "libacryl",
         "libui",
-        "libion",
     ] + select(soong_config_variable("exynos_hwc", "libhdr_plugin"), {
         any @ flag_val: [ flag_val ],
         default: [],

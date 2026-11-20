@@ -76,6 +76,19 @@ int32_t ExynosDeviceDrmInterface::getRestrictions(struct dpp_restrictions_info_v
             res = (struct drm_dpp_ch_restriction *)blob->data;
             setDppChannelRestriction(mDPUInfo.dpuInfo.dpp_ch[channelId], *res);
             drmModeFreePropertyBlob(blob);
+        } else if(plane->restrictions_property().id()) {
+            uint64_t blobId;
+            std::tie(ret, blobId) = plane->restrictions_property().value();
+            if (ret)
+                break;
+            drmModePropertyBlobPtr blob = drmModeGetPropertyBlob(mDrmDevice->fd(), blobId);
+            if (!blob) {
+                ALOGE("Fail to get blob for restrictions(%" PRId64 ")", blobId);
+                ret = HWC2_ERROR_UNSUPPORTED;
+                break;
+            }
+            setDppChannelRestriction(mDPUInfo.dpuInfo.dpp_ch[channelId], blob);
+            drmModeFreePropertyBlob(blob);
         } else {
             ALOGI("plane[%d] There is no hw restriction information", channelId);
             ret = HWC2_ERROR_UNSUPPORTED;
@@ -199,6 +212,76 @@ void ExynosDeviceDrmInterface::setDppChannelRestriction(struct dpp_ch_restrictio
     if (common_restriction.restriction.scale_up == 0)
         common_restriction.restriction.scale_up = 1;
 }
+void ExynosDeviceDrmInterface::setDppChannelRestriction(struct dpp_ch_restriction &common_restriction,
+                                                        drmModePropertyBlobPtr blob) {
+    char *ptr = (char *)blob->data;
+    int remaining = blob->length;
+    std::map<dpu_res_key, uint32_t> u32_values;
+    std::map<dpu_res_key, uint64_t> u64_values;
+    std::map<dpu_res_key, __u32_range> u32_range_values;
+
+    while (remaining > 0) {
+        switch (*(int *)ptr) {
+            case DPU_RES_TYPE_U32: {
+                struct dpu_res_u32 *res = (struct dpu_res_u32 *)ptr;
+                u32_values.emplace(res->key, res->val);
+                ptr += sizeof(*res);
+                remaining -= sizeof(*res);
+                break;
+            }
+            case DPU_RES_TYPE_U64: {
+                struct dpu_res_u64 *res = (struct dpu_res_u64 *)ptr;
+                u64_values.emplace(res->key, res->val);
+                ptr += sizeof(*res);
+                remaining -= sizeof(*res);
+                break;
+            }
+            case DPU_RES_TYPE_U32_RANGE: {
+                struct dpu_res_u32_range *res = (struct dpu_res_u32_range *)ptr;
+                u32_range_values.emplace(res->key, res->val);
+                ptr += sizeof(*res);
+                remaining -= sizeof(*res);
+                break;
+            }
+            default:
+                ALOGW("Unknown restriction type %d found with key %d", (dpu_res_type)*ptr,
+                        (dpu_res_key)*(ptr+sizeof(dpu_res_type)));
+                break;
+        }
+    }
+
+    common_restriction.id = u32_values.at(DPU_RES_ID);
+    common_restriction.port = u32_values.at(DPU_RES_PORT);
+    common_restriction.dpuf_id = u32_values.at(DPU_RES_DPUF_ID);
+    common_restriction.attr = u64_values.at(DPU_RES_ATTR);
+    common_restriction.restriction.src_f_w = u32_range_values.at(DPU_RES_SRC_F_W);
+    common_restriction.restriction.src_f_h = u32_range_values.at(DPU_RES_SRC_F_H);
+    common_restriction.restriction.src_w = u32_range_values.at(DPU_RES_SRC_W);
+    common_restriction.restriction.src_h = u32_range_values.at(DPU_RES_SRC_H);
+    common_restriction.restriction.src_x_align = u32_values.at(DPU_RES_SRC_X_ALIGN);
+    common_restriction.restriction.src_y_align = u32_values.at(DPU_RES_SRC_Y_ALIGN);
+    common_restriction.restriction.dst_f_w = u32_range_values.at(DPU_RES_DST_F_W);
+    common_restriction.restriction.dst_f_h = u32_range_values.at(DPU_RES_DST_F_H);
+    common_restriction.restriction.dst_w = u32_range_values.at(DPU_RES_DST_W);
+    common_restriction.restriction.dst_h = u32_range_values.at(DPU_RES_DST_H);
+    common_restriction.restriction.dst_x_align = u32_values.at(DPU_RES_DST_X_ALIGN);
+    common_restriction.restriction.dst_y_align = u32_values.at(DPU_RES_DST_Y_ALIGN);
+    common_restriction.restriction.blk_w = u32_range_values.at(DPU_RES_BLK_W);
+    common_restriction.restriction.blk_h = u32_range_values.at(DPU_RES_BLK_H);
+    common_restriction.restriction.blk_x_align = u32_values.at(DPU_RES_BLK_X_ALIGN);
+    common_restriction.restriction.blk_y_align = u32_values.at(DPU_RES_BLK_Y_ALIGN);
+    common_restriction.restriction.src_h_rot_max = u32_values.at(DPU_RES_SRC_H_ROT_MAX);
+    common_restriction.restriction.scale_down = u32_values.at(DPU_RES_SCALE_DOWN);
+    common_restriction.restriction.scale_up = u32_values.at(DPU_RES_SCALE_UP);
+    common_restriction.restriction.format_cnt = 0;
+
+    /* scale ratio can't be 0 */
+    if (common_restriction.restriction.scale_down == 0)
+        common_restriction.restriction.scale_down = 1;
+    if (common_restriction.restriction.scale_up == 0)
+        common_restriction.restriction.scale_up = 1;
+}
+
 void ExynosDeviceDrmInterface::HandlePanelEvent(uint64_t timestamp_us) {
     if (mPanelResetHandler == NULL)
         return;
